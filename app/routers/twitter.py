@@ -10,7 +10,20 @@ class Tokens(BaseModel):
     oauth_token: Optional[str] = None
     oauth_verifier: Optional[str] = None
 
-@twitter_view.get("/connect")
+# response model for GET REQUEST -> /twitter/connect
+class ConnectOut(BaseModel):
+    oauth_url: str
+
+# response model for POST REQUEST -> /twitter/oauth
+class OAuthOut(BaseModel):
+    user_id: str
+    name: str
+    description: str
+    screen_name: str
+    profile_image_url: str
+   
+
+@twitter_view.get("/connect",response_model=ConnectOut)
 def twitter_connect():
     oAuth = TwitterOAuth()
     auth_url=oAuth.fetch_auth_url()
@@ -18,7 +31,7 @@ def twitter_connect():
         "oauth_url":auth_url
     }
 
-@twitter_view.post("/oauth")
+@twitter_view.post("/oauth",response_model=OAuthOut)
 def fetch_access_tokens(tokens: Tokens):
     oAuth = TwitterOAuth()
     # pass received oauth_tokens(request_token) and oauth_verifier to fetch access tokens for user.
