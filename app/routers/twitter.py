@@ -1,8 +1,11 @@
 from fastapi import APIRouter
-from typing import Optional
+from typing import Dict, Optional
 from app.services.auth.twitterOAuth import TwitterOAuth
 from app.services.api.twitterAPI import TwitterAPI
 from pydantic import BaseModel
+from typing import List
+# temp import
+import json
 
 twitter_view = APIRouter()
 
@@ -21,6 +24,10 @@ class OAuthOut(BaseModel):
     description: str
     screen_name: str
     profile_image_url: str
+
+# response model for GET REQUEST -> /twitter/feed
+class FeedOut(BaseModel):
+    feed: List[Dict]
    
 
 @twitter_view.get("/connect",response_model=ConnectOut)
@@ -41,4 +48,27 @@ def fetch_access_tokens(tokens: Tokens):
     profile=api.get_user_profile(user_id,screen_name)
     # save these objects in DB to retrieve later and make API calls.
 
+    # temp code
+    with open('tokens.json', 'w') as fp:    
+        json.dump({
+            "access_token":access_token,
+            "access_token_secret":access_token_secret,
+            "user_id":user_id,
+            "screen_name":screen_name
+        }, fp)
+
     return profile
+
+@twitter_view.get("/feed",response_model=FeedOut)
+def get_feed():
+    with open('tokens.json', 'r') as fp:
+        data = json.load(fp)
+    print(data['access_token'])
+
+    api = TwitterAPI(access_token=data['access_token'],access_token_secret=data['access_token_secret'])
+    tweets = api.get_user_feed()
+    feed=[tweet._json for tweet in tweets]
+
+    return {
+        "feed":feed
+    }

@@ -24,3 +24,7 @@ class TwitterAPI:
             "screen_name":profile.screen_name,
             "profile_image_url":profile.profile_image_url
         }
+    
+    def get_user_feed(self):
+        feed=self.api.home_timeline(count=20)
+        return feed
