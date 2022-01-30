@@ -1,13 +1,10 @@
 import tweepy
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
+from app.config import TWITTER_API_KEY,TWITTER_API_KEY_SECRET
 
 class TwitterAPI:
     def __init__(self,access_token,access_token_secret) -> None:
-        self.api_key = os.getenv('API_KEY_3')
-        self.api_key_secret = os.getenv('API_KEY_SECRET_3')
+        self.api_key = TWITTER_API_KEY
+        self.api_key_secret = TWITTER_API_KEY_SECRET
         self.access_token = access_token
         self.access_token_secret = access_token_secret
     

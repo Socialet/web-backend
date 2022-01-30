@@ -1,9 +1,8 @@
 from fastapi import APIRouter
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 from app.services.auth.twitterOAuth import TwitterOAuth
 from app.services.api.twitterAPI import TwitterAPI
 from pydantic import BaseModel
-from typing import List
 # temp import
 import json
 

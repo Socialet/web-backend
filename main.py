@@ -1,8 +1,9 @@
 import uvicorn
-from app.api import app_api
 from fastapi import FastAPI
 from fastapi.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
+
+from app.api import app_api
 
 middleware = [Middleware(CORSMiddleware, allow_origins=['*'], allow_credentials=True, allow_methods=['*'], allow_headers=['*'])]
 
@@ -11,7 +12,7 @@ app = FastAPI(
     version="1.0",
     description="All in one Social Media Workflow Tool",
     middleware=middleware
-)
+) 
 
 app.include_router(app_api,prefix="/api",tags=["ALL API"])
 
