@@ -1,6 +1,12 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Optional
+from fastapi import APIRouter, Body,status
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse  
+
+from app.models.example import PostSchema
+from app.controllers.example import create_post
 
 post_view = APIRouter()
 
@@ -32,3 +38,12 @@ def publish_post(request: Post):
     attributes can be accessed using request.title so on
     """
     return request
+
+
+@post_view.post("/post", response_description="Post data added into the database",status_code=201)
+async def add_post_data(post: PostSchema = Body(...)):
+    # jsonable_encoder will give a dictionary
+    post = jsonable_encoder(post)
+    # call controller here -> create_post
+    created_post = await create_post(post)
+    return JSONResponse(status_code=status.HTTP_201_CREATED, content=created_post)
