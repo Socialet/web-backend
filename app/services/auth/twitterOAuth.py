@@ -1,17 +1,13 @@
 import tweepy
-from dotenv import load_dotenv
-import os
 import requests
 from urllib.parse import urlparse,parse_qs
-
-load_dotenv()  # take environment variables from .env.
-
+from app.config import TWITTER_API_KEY,TWITTER_API_KEY_SECRET,TWITTER_BEARER_TOKEN
 
 class TwitterOAuth:
     def __init__(self) -> None:
-        self.api_key = os.getenv('API_KEY_3')
-        self.api_key_secret = os.getenv('API_KEY_SECRET_3')
-        self.bearer_token = os.getenv('BEARER_TOKEN_3')
+        self.api_key = TWITTER_API_KEY
+        self.api_key_secret = TWITTER_API_KEY_SECRET
+        self.bearer_token = TWITTER_BEARER_TOKEN
         self.oauth1_user_handler = tweepy.OAuth1UserHandler(self.api_key,self.api_key_secret,callback="http://localhost:3000/admin/redirect")
 
         self.access_token_url ="https://api.twitter.com/oauth/access_token"
