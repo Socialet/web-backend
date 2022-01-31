@@ -3,7 +3,6 @@ from typing import Dict, Optional, List
 from app.services.auth.twitterOAuth import TwitterOAuth
 from app.services.api.twitterAPI import TwitterAPI
 from pydantic import BaseModel
-# temp import
 import json
 
 twitter_view = APIRouter()
@@ -27,6 +26,10 @@ class OAuthOut(BaseModel):
 # response model for GET REQUEST -> /twitter/feed
 class FeedOut(BaseModel):
     feed: List[Dict]
+
+# response model for GET REQUEST -> /twitter/search
+class TweetsOut(BaseModel):
+    tweets: List[Dict]
    
 
 @twitter_view.get("/connect",response_model=ConnectOut)
@@ -70,4 +73,18 @@ def get_feed():
 
     return {
         "feed":feed
+    }
+
+@twitter_view.get("/search",response_model=TweetsOut)
+def search_tweets(query : Optional[str] = None, geocode : Optional[str] = None):
+    with open('tokens.json', 'r') as fp:
+        data = json.load(fp)
+    print(data['access_token'])
+    print(query, geocode)    
+    api = TwitterAPI(access_token=data['access_token'],access_token_secret=data['access_token_secret'])
+    tweets = api.get_searched_tweets(query, geocode)     
+    tweets=[tweet._json for tweet in tweets]
+
+    return {
+        "tweets":tweets
     }

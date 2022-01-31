@@ -25,3 +25,8 @@ class TwitterAPI:
     def get_user_feed(self):
         feed=self.api.home_timeline(count=20)
         return feed
+
+    # geocode format --> '18.520430,73.856743,25km' (string)
+    def get_searched_tweets(self, query, geocode):
+        searched_tweets=self.api.search_tweets(q=query,geocode=geocode)
+        return searched_tweets
