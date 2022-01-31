@@ -20,3 +20,15 @@ class PostSchema(BaseModel):
                 "likes": 10,
             }
         }
+
+def userHelper(data) -> dict:
+    return {
+        "id": str(data['_id']),
+        "name": data['name'],
+        "email": data['email'],
+        "password":data['password'],
+        "image":data['image'],
+        "emailVerified":data['emailVerified'],
+        "createdAt": str(data['createdAt']),
+        "updatedAt": str(data['updatedAt']),
+    }

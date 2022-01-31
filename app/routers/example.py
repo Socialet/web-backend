@@ -6,7 +6,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse  
 
 from app.models.example import PostSchema
-from app.controllers.example import create_post
+from app.controllers.example import create_post,get_users
 
 post_view = APIRouter()
 
@@ -47,3 +47,8 @@ async def add_post_data(post: PostSchema = Body(...)):
     # call controller here -> create_post
     created_post = await create_post(post)
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=created_post)
+
+@post_view.get('/users',response_description="GET ALL users",status_code=200)
+async def get_all_users():
+    users = await get_users()
+    return JSONResponse(status_code=status.HTTP_200_OK, content=users)
