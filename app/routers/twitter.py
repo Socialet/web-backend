@@ -59,6 +59,14 @@ async def get_feed(user_id:str):
 
 @twitter_view.get("/search",response_model=TweetsOut,response_description="GET TWEETS BASED ON SEARCH QUERY FOR USER")
 async def search_tweets(user_id: str, query: str, geocode: Optional[str] = None):
+
+    # query fomatting for hashtags
+    new_query = ""
+    if query.startswith('hashtag'):
+        new_query = query.replace('hashtag', '#')
+    else:
+        new_query = query
+    
     channel=await get_channel_details(user_id=user_id)
     if channel==None:
         return ErrorResponseModel(
@@ -68,6 +76,6 @@ async def search_tweets(user_id: str, query: str, geocode: Optional[str] = None)
         )
 
     api = TwitterAPI(access_token=channel['twitter']['access_token'],access_token_secret=channel['twitter']['access_token_secret'])
-    tweets = api.get_searched_tweets(query, geocode)     
+    tweets = api.get_searched_tweets(new_query, geocode)     
     tweets=[tweet._json for tweet in tweets]
     return TweetsOut(tweets=tweets)
