@@ -1,9 +1,9 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, UploadFile, File, Form
 from fastapi.responses import JSONResponse
-from typing import Optional
+from typing import Optional, List
 from app.services.auth.twitterOAuth import TwitterOAuth
 from app.services.api.twitterAPI import TwitterAPI
-from app.controllers.twitter import create_channel, get_channel_details
+from app.controllers.twitter import create_channel, get_channel_details, media_handler
 from app.models.main import ErrorResponseModel
 from app.models.channels import ConnectOut,OAuthOut,Tokens,FeedOut,TweetsOut
 
@@ -59,6 +59,14 @@ async def get_feed(user_id:str):
 
 @twitter_view.get("/search",response_model=TweetsOut,response_description="GET TWEETS BASED ON SEARCH QUERY FOR USER")
 async def search_tweets(user_id: str, query: str, geocode: Optional[str] = None):
+
+    # query fomatting for hashtags
+    new_query = ""
+    if query.startswith('hashtag'):
+        new_query = query.replace('hashtag', '#')
+    else:
+        new_query = query
+    
     channel=await get_channel_details(user_id=user_id)
     if channel==None:
         return ErrorResponseModel(
@@ -68,6 +76,26 @@ async def search_tweets(user_id: str, query: str, geocode: Optional[str] = None)
         )
 
     api = TwitterAPI(access_token=channel['twitter']['access_token'],access_token_secret=channel['twitter']['access_token_secret'])
-    tweets = api.get_searched_tweets(query, geocode)     
+    tweets = api.get_searched_tweets(new_query, geocode)     
     tweets=[tweet._json for tweet in tweets]
     return TweetsOut(tweets=tweets)
+
+@twitter_view.post("/tweet")
+async def create_tweet(files: Optional[List[UploadFile]] = File(None),user_id: str =Form(...),text: str = Form(...)):
+
+    channel=await get_channel_details(user_id=user_id)
+    if channel==None:
+        return ErrorResponseModel(
+            error="User Id Could Not be Found for channel.",
+            code= status.HTTP_400_BAD_REQUEST,
+            message="Channel Not Registered."
+        )
+
+    api = TwitterAPI(access_token=channel['twitter']['access_token'],access_token_secret=channel['twitter']['access_token_secret'])
+
+    media_ids = []
+    if files!=None:
+        media_ids = await media_handler(files=files,api=api)
+    tweet = api.create_tweet(text,media_ids)
+
+    return JSONResponse(content=tweet._json,status_code=status.HTTP_201_CREATED)
