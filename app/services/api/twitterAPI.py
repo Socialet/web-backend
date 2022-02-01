@@ -30,3 +30,17 @@ class TwitterAPI:
     def get_searched_tweets(self, query, geocode):
         searched_tweets=self.api.search_tweets(q=query,geocode=geocode,tweet_mode="extended",count=100)
         return searched_tweets
+    
+    def upload_media(self,filename):
+        try:
+            media = self.api.media_upload(filename=filename)
+        except Exception as e:
+            print("Something went wrong while uploading the File.")
+        return media.media_id_string
+
+    def create_tweet(self,text,media_ids):
+        try:
+            new_tweet = self.api.update_status(status =text,media_ids = media_ids)
+        except Exception as e:
+            print("Something went wrong while creating new tweet.")
+        return new_tweet

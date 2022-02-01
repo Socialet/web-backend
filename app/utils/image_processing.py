@@ -16,3 +16,9 @@ def preprocess(image: Image.Image):
         img = tf.concat([img, img, img], axis=2)
     
     return img
+
+def convert_size_mb(size_bytes):
+   if size_bytes == 0:
+       return "0B"
+   file_size = round(size_bytes/float(1<<20), 2)
+   return file_size
