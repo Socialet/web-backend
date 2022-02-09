@@ -1,5 +1,5 @@
 import tweepy
-from app.config import TWITTER_API_KEY,TWITTER_API_KEY_SECRET
+from app.config import TWITTER_API_KEY,TWITTER_API_KEY_SECRET,get_logger
 
 class TwitterAPI:
     def __init__(self,access_token,access_token_secret) -> None:
@@ -7,12 +7,17 @@ class TwitterAPI:
         self.api_key_secret = TWITTER_API_KEY_SECRET
         self.access_token = access_token
         self.access_token_secret = access_token_secret
+        self.logger = get_logger()
     
         auth = tweepy.OAuth1UserHandler(self.api_key,self.api_key_secret,self.access_token,self.access_token_secret)
         self.api = tweepy.API(auth)
 
     def get_user_profile(self,user_id,screen_name):
-        profile = self.api.get_user(user_id=user_id,screen_name=screen_name,include_entities=1)
+        try:
+            profile = self.api.get_user(user_id=user_id,screen_name=screen_name,include_entities=1)
+        except Exception as e:
+            self.logger.error(f"Something went wrong while getting user profile: {str(e)}")
+            return None
 
         return{
             "user_id":profile.id_str,
@@ -23,24 +28,34 @@ class TwitterAPI:
         }
     
     def get_user_feed(self):
-        feed=self.api.home_timeline(count=20,tweet_mode="extended")
+        try:
+            feed=self.api.home_timeline(count=20,tweet_mode="extended")
+        except Exception as e:
+            self.logger.error(f"Something went wrong while fetching Feed: {str(e)}")
+            return None
         return feed
 
     # geocode format --> '18.520430,73.856743,25km' (string)
     def get_searched_tweets(self, query, geocode):
-        searched_tweets=self.api.search_tweets(q=query,geocode=geocode,tweet_mode="extended",count=100)
+        try:
+            searched_tweets=self.api.search_tweets(q=query,geocode=geocode,tweet_mode="extended",count=100)
+        except Exception as e:
+            self.logger.error(f"Something went wrong while searching Topic: {str(e)}")
+            return None
         return searched_tweets
     
     def upload_media(self,filename):
         try:
             media = self.api.media_upload(filename=filename)
         except Exception as e:
-            print("Something went wrong while uploading the File.")
+            self.logger.error(f"Something went wrong while uploading the File: {str(e)}")
+            return None
         return media.media_id_string
 
     def create_tweet(self,text,media_ids):
         try:
             new_tweet = self.api.update_status(status =text,media_ids = media_ids)
         except Exception as e:
-            print("Something went wrong while creating new tweet.")
+            self.logger.error(f"Something went wrong while creating new tweet: {str(e)}")
+            return None
         return new_tweet

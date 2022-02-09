@@ -26,3 +26,7 @@ def application_shutdown():
     log.info("Check logs to find more info...")
     
     return None
+
+def get_logger():
+    logger = logging.getLogger("uvicorn")
+    return logger

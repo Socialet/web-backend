@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, HttpUrl
-from typing import Optional, List, Dict
+from typing import Optional
 from bson import ObjectId
 from app.models.main import PyObjectId
 
@@ -19,14 +19,6 @@ class OAuthOut(BaseModel):
     description: str
     screen_name: str
     profile_image_url: str
-
-# response model for GET REQUEST -> /twitter/feed
-class FeedOut(BaseModel):
-    feed: List[Dict]
-
-# response model for GET REQUEST -> /twitter/search
-class TweetsOut(BaseModel):
-    tweets: List[Dict]
 
 
 # OAuthSchema for twitter object in MongoDB Collection->Channel

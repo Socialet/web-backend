@@ -43,7 +43,7 @@ async def media_handler(files,api)->List:
         
         async with aiofiles.open(file_path, 'wb') as out_file:
             content = await media.read()
-            await out_file.write(content)        
+            await out_file.write(content)
             file_size = convert_size_mb(len(content))
 
         # if media is image
@@ -55,8 +55,17 @@ async def media_handler(files,api)->List:
                     code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                     message="Image Size is Too Large for Twitter Support. Please upload image with size upto 5MB only."
                 )
-            else:            
-                media_ids.append(api.upload_media(filename=file_path))
+            else:
+                res = api.upload_media(filename=file_path)
+                # handling Twitter API Error
+                if res==None:
+                    return ErrorResponseModel(
+                        error="Something Went Wrong While Uploading Image.",
+                        code=status.HTTP_400_BAD_REQUEST,
+                        message="Something Went Wrong While Uploading Image to Twitter."
+                    )
+                media_ids.append(res)
+        
         # if media is GIF
         elif extension=="gif":
             if file_size > 15:
@@ -66,7 +75,15 @@ async def media_handler(files,api)->List:
                     message="GIF Size is Too Large for Twitter Support. Please upload GIF with size upto 15MB only."
                 )
             else:
-                media_ids.append(api.upload_media(filename=media.filename,file=media.file))
+                res = api.upload_media(filename=file_path)
+                # handling Twitter API Error
+                if res==None:
+                    return ErrorResponseModel(
+                        error="Something Went Wrong While Uploading GIF.",
+                        code=status.HTTP_400_BAD_REQUEST,
+                        message="Something Went Wrong While Uploading GIF to Twitter."
+                    )
+                media_ids.append(res)
         # if media is Video
         else:
             if file_size > 512:
@@ -76,7 +93,15 @@ async def media_handler(files,api)->List:
                     message="Video Size is Too Large for Twitter Support. Please upload Video with size upto 512MB only."
                 )
             else:
-                media_ids.append(api.upload_media(filename=media.filename,file=media.file))
+                res = api.upload_media(filename=file_path)
+                # handling Twitter API Error
+                if res==None:
+                    return ErrorResponseModel(
+                        error="Something Went Wrong While Uploading Video.",
+                        code=status.HTTP_400_BAD_REQUEST,
+                        message="Something Went Wrong While Uploading Video to Twitter."
+                    )
+                media_ids.append(res)
 
         # delete uploaded file
         if os.path.exists(file_path):

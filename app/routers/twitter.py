@@ -5,7 +5,7 @@ from app.services.auth.twitterOAuth import TwitterOAuth
 from app.services.api.twitterAPI import TwitterAPI
 from app.controllers.twitter import create_channel, get_channel_details, media_handler
 from app.models.main import ErrorResponseModel
-from app.models.channels import ConnectOut,OAuthOut,Tokens,FeedOut,TweetsOut
+from app.models.channels import ConnectOut,OAuthOut,Tokens
 
 twitter_view = APIRouter()
    
@@ -25,6 +25,13 @@ async def fetch_access_tokens(tokens: Tokens):
     api = TwitterAPI(access_token=access_token,access_token_secret=access_token_secret)
     profile = api.get_user_profile(user_id,screen_name)
 
+    if profile==None:
+        return ErrorResponseModel(
+            error="Something went wrong while getting user profile",
+            code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Could Not Get Your Profile. Please Try Again."
+        )
+
     # save these objects in DB to retrieve later and make API calls.
     twitterDict = {
         "access_token":access_token,
@@ -37,11 +44,18 @@ async def fetch_access_tokens(tokens: Tokens):
 
     # returns None if channel is not created
     created_channel = await create_channel(user_id=tokens.user_id,twitterOAuth=twitterDict)
+
+    if created_channel==None:
+        return ErrorResponseModel(
+            error="Something went wrong while creating user profile",
+            code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Could Not Get Your Profile. Please Try Again."
+        )
     
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=profile)
 
 
-@twitter_view.get("/feed/",response_model=FeedOut,response_description="GET FEED/HOME TIMELINE FOR USER")
+@twitter_view.get("/feed/",response_description="GET FEED/HOME TIMELINE FOR USER")
 async def get_feed(user_id:str):
     channel=await get_channel_details(user_id=user_id)
     if channel==None:
@@ -52,12 +66,20 @@ async def get_feed(user_id:str):
         )
     api = TwitterAPI(access_token=channel['twitter']['access_token'],access_token_secret=channel['twitter']['access_token_secret'])
     tweets = api.get_user_feed()
+
+    if tweets==None:
+        return ErrorResponseModel(
+            error="Something went wrong while fetching user feed.",
+            code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Could Not Get Your Feed. Please Try Again Later."
+        )
+
     feed=[tweet._json for tweet in tweets]
 
-    return FeedOut(feed=feed)
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"feed":feed})
         
 
-@twitter_view.get("/search",response_model=TweetsOut,response_description="GET TWEETS BASED ON SEARCH QUERY FOR USER")
+@twitter_view.get("/search",response_description="GET TWEETS BASED ON SEARCH QUERY FOR USER")
 async def search_tweets(user_id: str, query: str, geocode: Optional[str] = None):
 
     # query fomatting for hashtags
@@ -77,8 +99,16 @@ async def search_tweets(user_id: str, query: str, geocode: Optional[str] = None)
 
     api = TwitterAPI(access_token=channel['twitter']['access_token'],access_token_secret=channel['twitter']['access_token_secret'])
     tweets = api.get_searched_tweets(new_query, geocode)     
+    
+    if tweets==None:
+        return ErrorResponseModel(
+            error="Something went wrong while searching for topic",
+            code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Could Not Search Your Topic."
+        )
+
     tweets=[tweet._json for tweet in tweets]
-    return TweetsOut(tweets=tweets)
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"tweets":tweets})
 
 @twitter_view.post("/tweet")
 async def create_tweet(files: Optional[List[UploadFile]] = File(None),user_id: str =Form(...),text: str = Form(...)):
@@ -93,9 +123,20 @@ async def create_tweet(files: Optional[List[UploadFile]] = File(None),user_id: s
 
     api = TwitterAPI(access_token=channel['twitter']['access_token'],access_token_secret=channel['twitter']['access_token_secret'])
 
-    media_ids = []
+    media_response=None
     if files!=None:
-        media_ids = await media_handler(files=files,api=api)
-    tweet = api.create_tweet(text,media_ids)
+        media_response = await media_handler(files=files,api=api)
+        # check if response is a dictionary returned by ErrorResponseModel
+        if isinstance(media_response,dict):
+            # Error returned
+            return media_response
+        
+    tweet = api.create_tweet(text,media_response)
+    if tweet==None:
+        return ErrorResponseModel(
+            error="Could Not Create New Tweet",
+            code= status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Your Tweet was not created. Please Try Again."
+        )
 
     return JSONResponse(content=tweet._json,status_code=status.HTTP_201_CREATED)
