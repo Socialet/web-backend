@@ -2,6 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
+from app.config import application_shutdown
 
 from app.api import app_api
 
@@ -13,6 +14,11 @@ app = FastAPI(
     description="All in one Social Media Workflow Tool",
     middleware=middleware
 ) 
+
+@app.on_event("shutdown")
+def shutdown_event():
+    application_shutdown()
+
 
 app.include_router(app_api,prefix="/api",tags=["ALL API"])
 
