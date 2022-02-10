@@ -59,3 +59,19 @@ class TwitterAPI:
             self.logger.error(f"Something went wrong while creating new tweet: {str(e)}")
             return None
         return new_tweet
+    
+    def reply_tweet(self, text, media_ids, tweet_id):
+        try:
+            reply = self.api.update_status(status = text, media_ids = media_ids, in_reply_to_status_id = tweet_id , auto_populate_reply_metadata=True)
+        except Exception as e:
+            self.logger.error(f"Something went wrong while replying to tweet: {str(e)}")
+            return None
+        return reply
+    
+    def get_tweet(self, tweet_id):
+        try:
+            tweet = self.api.get_status(id = tweet_id)
+        except Exception as e:
+            self.logger.error(f"Something went wrong while fetching tweet by id: {str(e)}")
+            return None
+        return tweet

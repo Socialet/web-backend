@@ -114,6 +114,7 @@ async def search_tweets(user_id: str, query: str, geocode: Optional[str] = None)
 async def create_tweet(files: Optional[List[UploadFile]] = File(None),user_id: str =Form(...),text: str = Form(...)):
 
     channel=await get_channel_details(user_id=user_id)
+    
     if channel==None:
         return ErrorResponseModel(
             error="User Id Could Not be Found for channel.",
@@ -140,3 +141,54 @@ async def create_tweet(files: Optional[List[UploadFile]] = File(None),user_id: s
         )
 
     return JSONResponse(content=tweet._json,status_code=status.HTTP_201_CREATED)
+
+@twitter_view.post("/reply")
+async def reply_tweet(files: Optional[List[UploadFile]] = File(None), tweet_id: str=Form(...), user_id: str=Form(...), text: str=Form(...)):
+    channel=await get_channel_details(user_id=user_id)
+    if channel==None:
+        return ErrorResponseModel(
+            error="User Id Could Not be Found for channel.",
+            code= status.HTTP_400_BAD_REQUEST,
+            message="Channel Not Registered."
+        )
+    
+    api = TwitterAPI(access_token=channel['twitter']['access_token'],access_token_secret=channel['twitter']['access_token_secret'])
+
+    media_response=None
+    if files!=None:
+        media_response = await media_handler(files=files,api=api)
+        # check if response is a dictionary returned by ErrorResponseModel
+        if isinstance(media_response,dict):
+            # Error returned
+            return media_response
+        
+    tweet = api.reply_tweet(text, media_response, tweet_id)
+    if tweet==None:
+        return ErrorResponseModel(
+            error="Could Not Reply to Tweet",
+            code= status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Your Reply was not created. Please Try Again."
+        )
+    return JSONResponse(content=tweet._json,status_code=status.HTTP_201_CREATED) 
+
+@twitter_view.get("/tweet")
+async def get_tweet_by_id(tweet_id: str, user_id: str):
+    channel=await get_channel_details(user_id=user_id)
+    if channel==None:
+        return ErrorResponseModel(
+            error="User Id Could Not be Found for channel.",
+            code= status.HTTP_400_BAD_REQUEST,
+            message="Channel Not Registered."
+        )
+    
+    api = TwitterAPI(access_token=channel['twitter']['access_token'],access_token_secret=channel['twitter']['access_token_secret'])
+    tweet = api.get_tweet(tweet_id)
+    if tweet == None:
+        return ErrorResponseModel(
+            error="Tweet not found",
+            code= status.HTTP_404_NOT_FOUND,
+            message="Tweet not found"
+        )
+    return JSONResponse(content=tweet._json,status_code=status.HTTP_200_OK) 
+
+
