@@ -74,9 +74,7 @@ async def get_feed(user_id:str):
             message="Could Not Get Your Feed. Please Try Again Later."
         )
 
-    feed=[tweet._json for tweet in tweets]
-
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"feed":feed})
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"feed":tweets})
         
 
 @twitter_view.get("/search",response_description="GET TWEETS BASED ON SEARCH QUERY FOR USER")
@@ -98,8 +96,8 @@ async def search_tweets(user_id: str, query: str, geocode: Optional[str] = None)
         )
 
     api = TwitterAPI(access_token=channel['twitter']['access_token'],access_token_secret=channel['twitter']['access_token_secret'])
-    tweets = api.get_searched_tweets(new_query, geocode)     
     
+    tweets = api.get_searched_tweets(new_query, geocode)
     if tweets==None:
         return ErrorResponseModel(
             error="Something went wrong while searching for topic",
@@ -107,8 +105,7 @@ async def search_tweets(user_id: str, query: str, geocode: Optional[str] = None)
             message="Could Not Search Your Topic."
         )
 
-    tweets=[tweet._json for tweet in tweets]
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"tweets":tweets})
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"tweets":tweets['statuses']})
 
 @twitter_view.post("/tweet")
 async def create_tweet(files: Optional[List[UploadFile]] = File(None),user_id: str =Form(...),text: str = Form(...)):
@@ -140,7 +137,7 @@ async def create_tweet(files: Optional[List[UploadFile]] = File(None),user_id: s
             message="Your Tweet was not created. Please Try Again."
         )
 
-    return JSONResponse(content=tweet._json,status_code=status.HTTP_201_CREATED)
+    return JSONResponse(content=tweet,status_code=status.HTTP_201_CREATED)
 
 @twitter_view.post("/reply")
 async def reply_tweet(files: Optional[List[UploadFile]] = File(None), tweet_id: str=Form(...), user_id: str=Form(...), text: str=Form(...)):
@@ -169,7 +166,8 @@ async def reply_tweet(files: Optional[List[UploadFile]] = File(None), tweet_id: 
             code= status.HTTP_500_INTERNAL_SERVER_ERROR,
             message="Your Reply was not created. Please Try Again."
         )
-    return JSONResponse(content=tweet._json,status_code=status.HTTP_201_CREATED) 
+    
+    return JSONResponse(content=tweet,status_code=status.HTTP_201_CREATED) 
 
 @twitter_view.get("/tweet")
 async def get_tweet_by_id(tweet_id: str, user_id: str):
@@ -182,6 +180,7 @@ async def get_tweet_by_id(tweet_id: str, user_id: str):
         )
     
     api = TwitterAPI(access_token=channel['twitter']['access_token'],access_token_secret=channel['twitter']['access_token_secret'])
+    
     tweet = api.get_tweet(tweet_id)
     if tweet == None:
         return ErrorResponseModel(
@@ -189,6 +188,7 @@ async def get_tweet_by_id(tweet_id: str, user_id: str):
             code= status.HTTP_404_NOT_FOUND,
             message="Tweet not found"
         )
-    return JSONResponse(content=tweet._json,status_code=status.HTTP_200_OK) 
+    
+    return JSONResponse(content=tweet,status_code=status.HTTP_200_OK) 
 
 

@@ -10,7 +10,7 @@ class TwitterAPI:
         self.logger = get_logger()
     
         auth = tweepy.OAuth1UserHandler(self.api_key,self.api_key_secret,self.access_token,self.access_token_secret)
-        self.api = tweepy.API(auth)
+        self.api = tweepy.API(auth,parser=tweepy.parsers.JSONParser())
 
     def get_user_profile(self,user_id,screen_name):
         try:
