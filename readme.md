@@ -12,6 +12,9 @@
 2. activate your virtualenv
 3. run: pip install -r requirements.txt in your shell
 
+- If you are getting error for annoy install->
+- Substitute with `annoy==1.17.0` instead of the given line. (annoy @ file:///E:/SWT/smwt-backend/myenv/Lib/site-packages/annoy/annoy-1.17.0-cp38-cp38-win_amd64.whl)
+
 ##### To Execute and Start Server
 1. `uvicorn main:app --reload`
 
