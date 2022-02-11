@@ -20,11 +20,11 @@ class TwitterAPI:
             return None
 
         return{
-            "user_id":profile.id_str,
-            "name":profile.name,
-            "description":profile.description,
-            "screen_name":profile.screen_name,
-            "profile_image_url":profile.profile_image_url
+            "user_id":profile['id_str'],
+            "name":profile['name'],
+            "description":profile['description'],
+            "screen_name":profile['screen_name'],
+            "profile_image_url":profile['profile_image_url']
         }
     
     def get_user_feed(self):

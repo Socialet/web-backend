@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from typing import Dict, Optional, List
 from app.services.auth.twitterOAuth import TwitterOAuth
 from app.services.api.twitterAPI import TwitterAPI
-from app.controllers.twitter import create_channel, get_channel_details, media_handler, profile_add_on_new_user_registration
+from app.controllers.twitter import create_channel, delete_user_social_account, get_channel_details, get_user_social_accounts_details, media_handler, profile_add_on_new_user_registration
 from app.models.main import ErrorResponseModel
 from app.models.channels import ConnectOut, OAuthOut, Tokens
 from app.models.twitter import SurveyData
@@ -207,3 +207,12 @@ async def survey_upon_new_user_registration(survey_data: SurveyData = Body(...))
     return JSONResponse(content='Thanks for filling 😊', status_code=status.HTTP_200_OK)
 
 
+@twitter_view.get('/social/accounts', response_description="GET ALL SOCIAL ACCOUNTS INFO BY USER ID")
+async def get_social_sccounts_details_of_user(user_id: str):
+    user_accounts_details = await get_user_social_accounts_details(user_id)
+    return JSONResponse(content=user_accounts_details, status_code=status.HTTP_200_OK)
+
+@twitter_view.delete('/social/accounts', response_description="DELETE SPECIFIC SOCIAL ACCOUNT FROM THE USER CHANNELS")
+async def delete_social_account_of_user(user_id: str, social_account_name: str):
+    delete_account = await delete_user_social_account(user_id, social_account_name)
+    return JSONResponse(content=social_account_name + " disconncted successfully", status_code=status.HTTP_200_OK)
