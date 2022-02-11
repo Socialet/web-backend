@@ -9,3 +9,4 @@ database = client.smwt
 posts_collection = database.get_collection("posts_collection")
 users = database.get_collection("users")
 channels = database.get_collection("channels")
+profiles = database.get_collection("profiles")
