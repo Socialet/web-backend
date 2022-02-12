@@ -75,3 +75,19 @@ class TwitterAPI:
             self.logger.error(f"Something went wrong while fetching tweet by id: {str(e)}")
             return None
         return tweet
+
+    def favorites_tweet(self, tweet_id):
+        try:
+            fav_tweet = self.api.create_favorite(id = tweet_id)
+        except Exception as e:
+            self.logger.error(f"Something went wrong while liking the tweet: {str(e)}")
+            return None
+        return fav_tweet
+
+    def re_tweets(self, tweet_id):
+        try:
+            retweet = self.api.retweet(id = tweet_id)
+        except Exception as e:
+            self.logger.error(f"Something went wrong while liking the tweet: {str(e)}")
+            return None
+        return retweet
