@@ -1,3 +1,4 @@
+from email import message
 from fastapi import APIRouter, Body, status, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from typing import Optional, List
@@ -260,4 +261,4 @@ async def re_tweet(data: ReTweet = Body(...)):
             message="Could not perform Retweet. Please Try Again."
         )
 
-    return JSONResponse(content=tweet, status_code=status.HTTP_202_ACCEPTED)
+    return JSONResponse(content={"message":"Message has been retweeted."}, status_code=status.HTTP_202_ACCEPTED)
