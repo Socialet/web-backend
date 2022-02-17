@@ -26,11 +26,12 @@ class TwitterAPI:
             "screen_name":profile['screen_name'],
             "profile_image_url":profile['profile_image_url']
         }
-    
-    def get_user_feed(self,page_num):
+
+    def get_user_feed(self, page_num):
+        feed = []
         try:
             for page in tweepy.Cursor(self.api.home_timeline, tweet_mode="extended").pages(page_num):
-               feed = page
+                feed = page
         except Exception as e:
             self.logger.error(f"Something went wrong while fetching Feed: {str(e)}")
             return None
@@ -41,7 +42,7 @@ class TwitterAPI:
         searched_tweets=None
         try:
             for pageResult in tweepy.Cursor(self.api.search_tweets, q=query, geocode=geocode, tweet_mode="extended").pages(page):
-               searched_tweets = pageResult
+                searched_tweets = pageResult
         except Exception as e:
             self.logger.error(f"Something went wrong while searching Topic: {str(e)}")
             return None
