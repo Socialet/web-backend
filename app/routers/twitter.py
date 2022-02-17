@@ -62,7 +62,7 @@ async def fetch_access_tokens(tokens: Tokens):
 
 # GET METHODS
 @twitter_view.get("/feed/", description="GET FEED/HOME TIMELINE FOR USER")
-async def get_feed(user_id: str):
+async def get_feed(user_id: str, page: int):
     channel = await get_channel_details(user_id=user_id)
     if channel == None:
         return ErrorResponseModel(
@@ -72,7 +72,7 @@ async def get_feed(user_id: str):
         )
     api = TwitterAPI(access_token=channel['twitter']['access_token'],
                      access_token_secret=channel['twitter']['access_token_secret'])
-    tweets = api.get_user_feed()
+    tweets = api.get_user_feed(page)
 
     if tweets == None:
         return ErrorResponseModel(
@@ -85,7 +85,7 @@ async def get_feed(user_id: str):
 
 
 @twitter_view.get("/search", description="GET TWEETS BASED ON SEARCH QUERY FOR USER")
-async def search_tweets(user_id: str, query: str, geocode: Optional[str] = None):
+async def search_tweets(user_id: str, query: str, page: int, geocode: Optional[str] = None):
 
     # query fomatting for hashtags
     new_query = ""
@@ -105,7 +105,7 @@ async def search_tweets(user_id: str, query: str, geocode: Optional[str] = None)
     api = TwitterAPI(access_token=channel['twitter']['access_token'],
                      access_token_secret=channel['twitter']['access_token_secret'])
 
-    tweets = api.get_searched_tweets(new_query, geocode)
+    tweets = api.get_searched_tweets(new_query, page, geocode)
     if tweets == None:
         return ErrorResponseModel(
             error="Something went wrong while searching for topic",
@@ -113,7 +113,7 @@ async def search_tweets(user_id: str, query: str, geocode: Optional[str] = None)
             message="Could Not Search Your Topic."
         )
 
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"tweets": tweets['statuses']})
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"searched_tweets": tweets['statuses']})
 
 
 @twitter_view.get("/tweet", description="FETCH TWEET DETAILS BY ID")
@@ -141,7 +141,6 @@ async def get_tweet_by_id(tweet_id: str, user_id: str):
 
 @twitter_view.post("/tweet", description="CREATE TWEET/ CREATE TWITTER STATUS (WITH AND WITHOUT MEDIA)")
 async def create_tweet(files: Optional[List[UploadFile]] = File(None), user_id: str = Form(...), text: str = Form(...)):
-
     channel = await get_channel_details(user_id=user_id)
 
     if channel == None:
@@ -201,7 +200,7 @@ async def reply_tweet(files: Optional[List[UploadFile]] = File(None), tweet_id: 
             code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             message="Your Reply was not created. Please Try Again."
         )
-    return JSONResponse(content=tweet._json, status_code=status.HTTP_201_CREATED)
+    return JSONResponse(content=tweet, status_code=status.HTTP_201_CREATED)
 
 # PATCH METHODS
 

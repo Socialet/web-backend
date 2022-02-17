@@ -27,23 +27,26 @@ class TwitterAPI:
             "profile_image_url":profile['profile_image_url']
         }
     
-    def get_user_feed(self):
+    def get_user_feed(self,page_num):
         try:
-            feed=self.api.home_timeline(count=20,tweet_mode="extended")
+            for page in tweepy.Cursor(self.api.home_timeline, tweet_mode="extended").pages(page_num):
+               feed = page
         except Exception as e:
             self.logger.error(f"Something went wrong while fetching Feed: {str(e)}")
             return None
         return feed
 
     # geocode format --> '18.520430,73.856743,25km' (string)
-    def get_searched_tweets(self, query, geocode):
+    def get_searched_tweets(self, query, page ,geocode):
+        searched_tweets=None
         try:
-            searched_tweets=self.api.search_tweets(q=query,geocode=geocode,tweet_mode="extended",count=100)
+            for pageResult in tweepy.Cursor(self.api.search_tweets, q=query, geocode=geocode, tweet_mode="extended").pages(page):
+               searched_tweets = pageResult
         except Exception as e:
             self.logger.error(f"Something went wrong while searching Topic: {str(e)}")
             return None
         return searched_tweets
-    
+
     def upload_media(self,filename):
         try:
             media = self.api.media_upload(filename=filename)
