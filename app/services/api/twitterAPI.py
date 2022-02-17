@@ -50,7 +50,7 @@ class TwitterAPI:
         except Exception as e:
             self.logger.error(f"Something went wrong while uploading the File: {str(e)}")
             return None
-        return media.media_id_string
+        return media['media_id_string']
 
     def create_tweet(self,text,media_ids):
         try:
@@ -84,10 +84,26 @@ class TwitterAPI:
             return None
         return fav_tweet
 
-    def re_tweets(self, tweet_id):
+    def destory_favorite_tweet(self,tweet_id):
+        try:
+            destroy_tweet = self.api.destroy_favorite(id = tweet_id)
+        except Exception as e:
+            self.logger.error(f"Something went wrong while disliking the tweet: {str(e)}")
+            return None
+        return destroy_tweet
+
+    def re_tweet(self, tweet_id):
         try:
             retweet = self.api.retweet(id = tweet_id)
         except Exception as e:
-            self.logger.error(f"Something went wrong while liking the tweet: {str(e)}")
+            self.logger.error(f"Something went wrong while retweeting: {str(e)}")
+            return None
+        return retweet
+    
+    def un_retweet(self, tweet_id):
+        try:
+            retweet = self.api.unretweet(id = tweet_id)
+        except Exception as e:
+            self.logger.error(f"Something went wrong while unretweeting the tweet: {str(e)}")
             return None
         return retweet

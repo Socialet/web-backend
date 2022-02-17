@@ -2,28 +2,30 @@ import aiofiles
 import os
 from fastapi import status
 from typing import List
-from app.db.connect import users, channels, profiles
-from app.utils.helperData import fetch_social_accounts
+from bson import ObjectId
+from app.db.connect import users, channels
 from app.utils.image_processing import convert_size_mb
 from app.models.main import ErrorResponseModel
-from fastapi.encoders import jsonable_encoder
-from bson import ObjectId
 
 
-async def create_channel(user_id: str, twitterOAuth: dict):
-    # this part will be change in future if we add more social acounts 🤷‍♂️
+async def create_channel(user_id: str, channel_name:str, channel_obj: dict):
+    
     channel = await channels.find_one({"user_id": user_id})
     if channel != None:
         # do not insert as a new channel
-        return None
-    channel_inserted = await channels.insert_one({"user_id": user_id, "twitter": twitterOAuth})
+        channel_updated = await channels.update_one({"user_id": user_id}, {'$set':{channel_name: channel_obj}})
+        return channel_updated
+        
+    channel_inserted = await channels.insert_one({"user_id": user_id, channel_name: channel_obj})
     updated_user = await users.update_one({"_id": ObjectId(user_id)}, {'$set': {"channel_id": channel_inserted.inserted_id}})
+    
     return channel_inserted
 
 # gets channel details if channel exists
 
 
 async def get_channel_details(user_id: str):
+    
     channel = await channels.find_one({"user_id": user_id})
     if channel == None:
         return None
@@ -31,6 +33,7 @@ async def get_channel_details(user_id: str):
 
 
 async def media_handler(files, api) -> List:
+    
     media_ids = []
     for media in files:
         extension = media.filename.split(".")[-1]
@@ -118,45 +121,3 @@ async def media_handler(files, api) -> List:
         else:
             print("The file does not exist")
     return media_ids
-
-
-async def profile_add_on_new_user_registration(survey_data):
-    print(survey_data)
-    data = jsonable_encoder(survey_data)
-    profile_inserted = await profiles.insert_one({"user_id": data['user_id'], "surveyData": data})
-    print(profile_inserted)
-    ref_id_added_to_user = await users.update_one({"_id": ObjectId(data['user_id'])}, {"$set": {"profile_id": profile_inserted.inserted_id}})
-    return profile_inserted
-
-
-async def get_user_social_accounts_details(user_id):
-    available_accounts_of_user = dict()
-    accounts = fetch_social_accounts()
-    channel = await channels.find_one({"user_id": user_id})
-    print(user_id, channel)
-    if channel == None:
-        return {account: False for account in accounts}
-    
-    channel = dict(channel)
-    for account in accounts:
-        if account in channel:
-            available_accounts_of_user[account] = True
-        else:
-            available_accounts_of_user[account] = False
-    print(available_accounts_of_user)
-    return available_accounts_of_user
-
-
-async def delete_user_social_account(user_id, social_account_name):
-    channel = await channels.find_one({"user_id": user_id})
-    channel = dict(channel)
-    accounts = fetch_social_accounts()
-    account_counter = 0
-    for account in accounts:
-        if account in channel:
-            account_counter += 1
-    if account_counter == 1 and account_counter != 0:
-        await channels.delete_one({"user_id": user_id})
-    else:
-        await channels.update_one({"user_id": user_id}, {"$unset": {social_account_name: ""}})
-    return channel

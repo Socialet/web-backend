@@ -20,6 +20,15 @@ class OAuthOut(BaseModel):
     screen_name: str
     profile_image_url: str
 
+class FavoritesTweet(BaseModel):
+    tweet_id:str
+    user_id:str
+    favorite:str
+
+class ReTweet(BaseModel):
+    tweet_id:str
+    user_id:str
+    retweet:str
 
 # OAuthSchema for twitter object in MongoDB Collection->Channel
 class TwitterOAuthSchema(BaseModel):
