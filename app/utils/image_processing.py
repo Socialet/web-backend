@@ -1,3 +1,4 @@
+import os
 from PIL import Image
 from io import BytesIO
 import tensorflow as tf
@@ -22,3 +23,10 @@ def convert_size_mb(size_bytes):
        return "0B"
    file_size = round(size_bytes/float(1<<20), 2)
    return file_size
+
+async def delete_uploaded_media(file_path):
+    # delete uploaded file
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    else:
+        print("The file does not exist")

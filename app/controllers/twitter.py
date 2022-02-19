@@ -7,7 +7,7 @@ from fastapi.encoders import jsonable_encoder
 from typing import List
 from bson import ObjectId
 from app.db.connect import users, channels, posts
-from app.utils.image_processing import convert_size_mb
+from app.utils.image_processing import convert_size_mb, delete_uploaded_media
 from app.models.main import ErrorResponseModel
 from app.config import get_logger
 
@@ -67,6 +67,7 @@ async def media_handler(files, api) -> List:
         if extension in ("jpg", "jpeg", "png"):
             # image size greater than 5 MB not supported by Twitter
             if file_size > 5:
+                await delete_uploaded_media(file_path=file_path)
                 return ErrorResponseModel(
                     error="Image Size Too Large",
                     code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
@@ -76,6 +77,7 @@ async def media_handler(files, api) -> List:
                 res = api.upload_media(filename=file_path)
                 # handling Twitter API Error
                 if res == None:
+                    await delete_uploaded_media(file_path=file_path)
                     return ErrorResponseModel(
                         error="Something Went Wrong While Uploading Image.",
                         code=status.HTTP_400_BAD_REQUEST,
@@ -86,6 +88,7 @@ async def media_handler(files, api) -> List:
         # if media is GIF
         elif extension == "gif":
             if file_size > 15:
+                await delete_uploaded_media(file_path=file_path)
                 return ErrorResponseModel(
                     error="GIF Size Too Large",
                     code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
@@ -95,6 +98,7 @@ async def media_handler(files, api) -> List:
                 res = api.upload_media(filename=file_path)
                 # handling Twitter API Error
                 if res == None:
+                    await delete_uploaded_media(file_path=file_path)
                     return ErrorResponseModel(
                         error="Something Went Wrong While Uploading GIF.",
                         code=status.HTTP_400_BAD_REQUEST,
@@ -104,6 +108,7 @@ async def media_handler(files, api) -> List:
         # if media is Video
         else:
             if file_size > 512:
+                await delete_uploaded_media(file_path=file_path)
                 return ErrorResponseModel(
                     error="Video Size Too Large",
                     code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
@@ -113,6 +118,7 @@ async def media_handler(files, api) -> List:
                 res = api.upload_media(filename=file_path)
                 # handling Twitter API Error
                 if res == None:
+                    await delete_uploaded_media(file_path=file_path)
                     return ErrorResponseModel(
                         error="Something Went Wrong While Uploading Video.",
                         code=status.HTTP_400_BAD_REQUEST,
@@ -121,10 +127,7 @@ async def media_handler(files, api) -> List:
                 media_ids.append(res)
 
         # delete uploaded file
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        else:
-            print("The file does not exist")
+        delete_uploaded_media(file_path=file_path)
     return media_ids
 
 # media handler for Scheduled Tweets
