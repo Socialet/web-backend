@@ -9,7 +9,6 @@ class PostSchema(BaseModel):
     user_id: str = Field(...)
     text: str = Field(...)
     files: Optional[List[str]] = Field(None)
-    isScheduled: bool = Field(...)
     scheduledDateTime: Optional[str] = Field(None)
     timeFormat: Optional[str] = Field(None)
 
@@ -22,7 +21,7 @@ class PostSchema(BaseModel):
                 "user_id": "694f3a10i2031345",
                 "text":"This is a post",
                 "files": ["https://stockphotos.com/456165","https://stockphotos.com/4561"],
-                "isScheduled":"true",
-                "scheduledDateTime":""
+                "scheduledDateTime":"",
+                "timeFormat":""
             }
         }
