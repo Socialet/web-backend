@@ -1,12 +1,17 @@
 import aiofiles
 import os
+import cloudinary.uploader as uploader
+from cloudinary.uploader import destroy
 from fastapi import status
+from fastapi.encoders import jsonable_encoder
 from typing import List
 from bson import ObjectId
-from app.db.connect import users, channels
+from app.db.connect import users, channels, posts
 from app.utils.image_processing import convert_size_mb
 from app.models.main import ErrorResponseModel
+from app.config import get_logger
 
+logger = get_logger()
 
 async def create_channel(user_id: str, channel_name:str, channel_obj: dict):
     
@@ -31,7 +36,7 @@ async def get_channel_details(user_id: str):
         return None
     return channel
 
-
+# media handler for POST NOW Tweets
 async def media_handler(files, api) -> List:
     
     media_ids = []
@@ -121,3 +126,82 @@ async def media_handler(files, api) -> List:
         else:
             print("The file does not exist")
     return media_ids
+
+# media handler for Scheduled Tweets
+async def scheduled_media_handler(files) -> List:
+    
+    media_uploads = []
+    for media in files:
+        extension = media.filename.split(".")[-1]
+        supported = extension in (
+            "jpg", "jpeg", "png", "gif", "webp", "mp4", "mov")
+        if not supported:
+            return ErrorResponseModel(
+                error="Media Type Not Supported",
+                code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                message="This File Format is unsupported by Twitter."
+            )
+
+        content = await media.read()
+        # if video use upload_large
+        if extension in ("webp","mp4","mov"):
+            uploaded_file= uploader.upload_large(content)
+        else:
+            uploaded_file= uploader.upload(content)
+
+        file_size=convert_size_mb(uploaded_file["bytes"])
+        # if media is image
+        if extension in ("jpg", "jpeg", "png"):
+            # image size greater than 5 MB not supported by Twitter
+            if file_size > 5:
+                try:
+                    destroy(uploaded_file['public_id'])
+                except Exception as e:
+                    logger.error(f"Something went wrong: {str(e)}")
+                return ErrorResponseModel(
+                    error="Image Size Too Large",
+                    code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    message="Image Size is Too Large for Twitter Support. Please upload image with size upto 5MB only."
+                )
+            else:
+                media_uploads.append(uploaded_file['url'])
+
+        # if media is GIF
+        elif extension == "gif":
+            if file_size > 15:
+                try:
+                    destroy(uploaded_file['public_id'])
+                except Exception as e:
+                    logger.error(f"Something went wrong: {str(e)}")
+                return ErrorResponseModel(
+                    error="GIF Size Too Large",
+                    code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    message="GIF Size is Too Large for Twitter Support. Please upload GIF with size upto 15MB only."
+                )
+            else:
+                media_uploads.append(uploaded_file['url'])
+
+        # if media is Video
+        else:
+            if file_size > 512:
+                try:
+                    destroy(uploaded_file['public_id'])
+                except Exception as e:
+                    logger.error(f"Something went wrong: {str(e)}")
+                return ErrorResponseModel(
+                    error="Video Size Too Large",
+                    code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    message="Video Size is Too Large for Twitter Support. Please upload Video with size upto 512MB only."
+                )
+            else:
+                media_uploads.append(uploaded_file['url'])
+
+    return media_uploads
+
+
+# saves scheduled posts to Database
+async def post_saver(scheduled_post: dict):
+    data = jsonable_encoder(scheduled_post)
+    post_inserted = await posts.insert_one(data)
+    post_created = await posts.find_one({"_id": post_inserted.inserted_id})
+    return post_created

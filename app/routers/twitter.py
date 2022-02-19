@@ -1,10 +1,9 @@
-from email import message
 from fastapi import APIRouter, Body, status, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from typing import Optional, List
 from app.services.auth.twitterOAuth import TwitterOAuth
 from app.services.api.twitterAPI import TwitterAPI
-from app.controllers.twitter import create_channel, get_channel_details, media_handler
+from app.controllers.twitter import create_channel, get_channel_details, media_handler, scheduled_media_handler, post_saver
 from app.models.main import ErrorResponseModel
 from app.models.channels import ConnectOut, OAuthOut, Tokens, ReTweet, FavoritesTweet
 
@@ -141,7 +140,10 @@ async def get_tweet_by_id(tweet_id: str, user_id: str):
 # POST METHODS
 
 @twitter_view.post("/tweet", description="CREATE TWEET/ CREATE TWITTER STATUS (WITH AND WITHOUT MEDIA)")
-async def create_tweet(files: Optional[List[UploadFile]] = File(None), user_id: str = Form(...), text: str = Form(...)):
+async def create_tweet(files: Optional[List[UploadFile]] = File(None), user_id: str = Form(...),
+text: str = Form(...), is_scheduled: str = Form(...), scheduled_datetime: Optional[str] = Form(None), 
+timeformat: Optional[str] = Form(None)
+):
     channel = await get_channel_details(user_id=user_id)
 
     if channel == None:
@@ -154,6 +156,35 @@ async def create_tweet(files: Optional[List[UploadFile]] = File(None), user_id: 
     api = TwitterAPI(access_token=channel['twitter']['access_token'],
                      access_token_secret=channel['twitter']['access_token_secret'])
 
+    # check if post is to be scheduled
+    if is_scheduled=="True":
+        media=await scheduled_media_handler(files=files)
+        if isinstance(media, dict):
+            # Error returned
+            return media
+        
+        # if success
+        scheduled_post = {
+            "user_id":user_id,
+            "text":text,
+            "is_scheduled":is_scheduled,
+            "scheduled_datetime":scheduled_datetime,
+            "timeformat":timeformat,
+            "files": media
+        }
+        post_created = await post_saver(scheduled_post=scheduled_post)
+        if post_created == None:
+            return ErrorResponseModel(
+                error="Could Not Schedule New Tweet",
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                message="Your Tweet was not scheduled. Please Try Again."
+            )
+        # convert ObjectId to String for JSON
+        post_created['_id'] = str(post_created['_id'])
+        
+        return JSONResponse(content=post_created, status_code=status.HTTP_201_CREATED)
+
+    # else continue with POST TWEET NOW
     media_response = None
     if files != None:
         media_response = await media_handler(files=files, api=api)

@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime
 import logging
+import cloudinary
 
 load_dotenv()
 
@@ -30,3 +31,9 @@ def application_shutdown():
 def get_logger():
     logger = logging.getLogger("uvicorn")
     return logger
+
+cloudinary.config(
+    cloud_name=os.getenv('CLOUDINARY_NAME'),
+    api_key=os.getenv('CLOUDINARY_API_KEY'),
+    api_secret=os.getenv('CLOUDINARY_API_KEY_SECRET')
+)
