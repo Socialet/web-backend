@@ -187,13 +187,15 @@ text: str = Form(...), scheduled_datetime: Optional[str] = Form(None), time_form
     api = TwitterAPI(access_token=channel['twitter']['access_token'],
                      access_token_secret=channel['twitter']['access_token_secret'])
 
-    # check if post is to be scheduled
+    # handle media for scheduled post
     media=await scheduled_media_handler(files=files)
+
+    # if media returned is an Error Object
     if isinstance(media, dict):
         # Error returned
         return media
     
-    # if success
+    # if successful upload of media occurs
     scheduled_post = {
         "user_id":user_id,
         "text":text,
