@@ -11,6 +11,8 @@ class PostSchema(BaseModel):
     files: Optional[List[str]] = Field(None)
     scheduledDateTime: Optional[str] = Field(None)
     timeFormat: Optional[str] = Field(None)
+    published: bool = Field(False)
+    expired: bool = Field(False)
 
     class Config:
         allow_population_by_field_name = True

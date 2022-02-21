@@ -1,12 +1,11 @@
 import aiofiles
 import os
-import cloudinary.uploader as uploader
-from cloudinary.uploader import destroy
 from fastapi import status
-from fastapi.encoders import jsonable_encoder
 from typing import List
 from bson import ObjectId
-from app.db.connect import users, channels, posts
+from cloudinary.uploader import destroy
+import cloudinary.uploader as uploader
+from app.db.connect import users, channels
 from app.utils.image_processing import convert_size_mb, delete_uploaded_media
 from app.models.main import ErrorResponseModel
 from app.config import get_logger
@@ -127,7 +126,7 @@ async def media_handler(files, api) -> List:
                 media_ids.append(res)
 
         # delete uploaded file
-        delete_uploaded_media(file_path=file_path)
+        await delete_uploaded_media(file_path=file_path)
     return media_ids
 
 # media handler for Scheduled Tweets
@@ -200,11 +199,3 @@ async def scheduled_media_handler(files) -> List:
                 media_uploads.append(uploaded_file['url'])
 
     return media_uploads
-
-
-# saves scheduled posts to Database
-async def post_saver(scheduled_post: dict):
-    data = jsonable_encoder(scheduled_post)
-    post_inserted = await posts.insert_one(data)
-    post_created = await posts.find_one({"_id": post_inserted.inserted_id})
-    return post_created

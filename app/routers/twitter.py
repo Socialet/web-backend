@@ -3,7 +3,8 @@ from fastapi.responses import JSONResponse
 from typing import Optional, List
 from app.services.auth.twitterOAuth import TwitterOAuth
 from app.services.api.twitterAPI import TwitterAPI
-from app.controllers.twitter import create_channel, get_channel_details, media_handler, scheduled_media_handler, post_saver
+from app.controllers.twitter import create_channel, get_channel_details, media_handler, scheduled_media_handler
+from app.controllers.posts import post_saver
 from app.models.main import ErrorResponseModel
 from app.models.channels import ConnectOut, FollowUser, OAuthOut, Tokens, ReTweet, FavoritesTweet
 
@@ -188,12 +189,14 @@ text: str = Form(...), scheduled_datetime: Optional[str] = Form(None), time_form
                      access_token_secret=channel['twitter']['access_token_secret'])
 
     # handle media for scheduled post
-    media=await scheduled_media_handler(files=files)
+    media=None
+    if files != None:
+        media=await scheduled_media_handler(files=files)
 
-    # if media returned is an Error Object
-    if isinstance(media, dict):
-        # Error returned
-        return media
+        # if media returned is an Error Object
+        if isinstance(media, dict):
+            # Error returned
+            return media
     
     # if successful upload of media occurs
     scheduled_post = {
@@ -201,7 +204,9 @@ text: str = Form(...), scheduled_datetime: Optional[str] = Form(None), time_form
         "text":text,
         "scheduled_datetime":scheduled_datetime,
         "timeformat":time_format,
-        "files": media
+        "files": media,
+        "published": False,
+        "expired": False,
     }
     post_created = await post_saver(scheduled_post=scheduled_post)
     if post_created == None:
