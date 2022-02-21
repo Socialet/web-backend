@@ -166,3 +166,23 @@ class TwitterAPI:
                 f"Something went wrong while fetching User Profile: {str(e)}")
             return None
         return profile
+
+    def follow_user(self, user_id):
+        try:
+            follow_tweet = self.api.create_friendship(
+                user_id=user_id, follow=True)
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while following the user: {str(e)}")
+            return None
+        return follow_tweet
+
+    def unfollow_user(self, user_id):
+        try:
+            unfollow_tweet = self.api.destroy_friendship(
+                user_id=user_id, follow=True)
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while following the user: {str(e)}")
+            return None
+        return unfollow_tweet
