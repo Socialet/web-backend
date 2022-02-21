@@ -274,7 +274,7 @@ async def favorite_tweet(data: FavoritesTweet = Body(...)):
             message="Your Tweet was not favorited. Please Try Again."
         )
 
-    return JSONResponse(content=tweet, status_code=status.HTTP_202_ACCEPTED)
+    return JSONResponse(content={"message": "Message has been favorited."}, status_code=status.HTTP_202_ACCEPTED)
 
 
 @twitter_view.patch("/retweet", description="RETWEET/ UNDO RETWEET")
@@ -304,4 +304,4 @@ async def re_tweet(data: ReTweet = Body(...)):
             message="Could not perform Retweet. Please Try Again."
         )
 
-    return JSONResponse(content={"message":"Message has been retweeted."}, status_code=status.HTTP_202_ACCEPTED)
+    return JSONResponse(content={"message": "Message has been retweeted."}, status_code=status.HTTP_202_ACCEPTED)

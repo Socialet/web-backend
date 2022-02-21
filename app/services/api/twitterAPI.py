@@ -1,3 +1,4 @@
+from pyparsing import FollowedBy
 import tweepy
 from app.config import TWITTER_API_KEY,TWITTER_API_KEY_SECRET,get_logger
 
@@ -111,3 +112,57 @@ class TwitterAPI:
             self.logger.error(f"Something went wrong while unretweeting the tweet: {str(e)}")
             return None
         return retweet
+
+    def get_user_posts(self, user_id, screen_name, page):
+        posts = []
+        try:
+            for page in tweepy.Cursor(self.api.user_timeline, user_id=user_id, screen_name=screen_name, tweet_mode="extended").pages(page):
+                posts = page
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while fetching Posts: {str(e)}")
+            return None
+        return posts
+
+    def get_user_mentions_timeline(self, page):
+        mentions = []
+        try:
+            for page in tweepy.Cursor(self.api.mentions_timeline, tweet_mode="extended").pages(page):
+                mentions = page
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while fetching Posts: {str(e)}")
+            return None
+        return mentions
+
+    def get_user_followers(self, user_id, screen_name, page):
+        followers = []
+        try:
+            for page in tweepy.Cursor(self.api.get_followers, user_id=user_id, screen_name=screen_name, tweet_mode="extended").pages(page):
+                followers = page
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while fetching User Followers: {str(e)}")
+            return None
+        return followers
+
+    def get_user_following(self, user_id, screen_name, page):
+        following = []
+        try:
+            for page in tweepy.Cursor(self.api.get_friends, user_id=user_id, screen_name=screen_name, tweet_mode="extended").pages(page):
+                following = page
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while fetching User Following: {str(e)}")
+            return None
+        return following
+
+    def get_user(self, user_id, screen_name):
+        try:
+           profile = self.api.get_user(
+               user_id=user_id, screen_name=screen_name)
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while fetching User Profile: {str(e)}")
+            return None
+        return profile
