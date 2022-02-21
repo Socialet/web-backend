@@ -111,3 +111,77 @@ class TwitterAPI:
             self.logger.error(f"Something went wrong while unretweeting the tweet: {str(e)}")
             return None
         return retweet
+
+    def get_user_posts(self, user_id, screen_name, page):
+        posts = []
+        try:
+            for page in tweepy.Cursor(self.api.user_timeline, user_id=user_id, screen_name=screen_name, tweet_mode="extended").pages(page):
+                posts = page
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while fetching Posts: {str(e)}")
+            return None
+        return posts
+
+    def get_user_mentions_timeline(self, page):
+        mentions = []
+        try:
+            for page in tweepy.Cursor(self.api.mentions_timeline, tweet_mode="extended").pages(page):
+                mentions = page
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while fetching Posts: {str(e)}")
+            return None
+        return mentions
+
+    def get_user_follwers(self, user_id, screen_name, page):
+        follwers = []
+        try:
+            for page in tweepy.Cursor(self.api.get_followers, user_id=user_id, screen_name=screen_name, tweet_mode="extended").pages(page):
+                follwers = page
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while fetching User Followers: {str(e)}")
+            return None
+        return follwers
+
+    def get_user_follwing(self, user_id, screen_name, page):
+        follwing = []
+        try:
+            for page in tweepy.Cursor(self.api.get_friends, user_id=user_id, screen_name=screen_name, tweet_mode="extended").pages(page):
+                follwing = page
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while fetching User Follwing: {str(e)}")
+            return None
+        return follwing
+
+    def get_user(self, user_id, screen_name):
+        try:
+           profile = self.api.get_user(
+               user_id=user_id, screen_name=screen_name)
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while fetching User Profile: {str(e)}")
+            return None
+        return profile
+
+    def follow_user(self, user_id):
+        try:
+            follow_tweet = self.api.create_friendship(
+                user_id=user_id, follow=True)
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while following the user: {str(e)}")
+            return None
+        return follow_tweet
+
+    def unfollow_user(self, user_id):
+        try:
+            unfollow_tweet = self.api.destroy_friendship(
+                user_id=user_id, follow=True)
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while following the user: {str(e)}")
+            return None
+        return unfollow_tweet

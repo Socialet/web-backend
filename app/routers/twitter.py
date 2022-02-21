@@ -5,7 +5,7 @@ from app.services.auth.twitterOAuth import TwitterOAuth
 from app.services.api.twitterAPI import TwitterAPI
 from app.controllers.twitter import create_channel, get_channel_details, media_handler, scheduled_media_handler, post_saver
 from app.models.main import ErrorResponseModel
-from app.models.channels import ConnectOut, OAuthOut, Tokens, ReTweet, FavoritesTweet
+from app.models.channels import ConnectOut, FollowUser, OAuthOut, Tokens, ReTweet, FavoritesTweet
 
 twitter_view = APIRouter()
 
@@ -304,4 +304,33 @@ async def re_tweet(data: ReTweet = Body(...)):
             message="Could not perform Retweet. Please Try Again."
         )
 
-    return JSONResponse(content={"message":"Message has been retweeted."}, status_code=status.HTTP_202_ACCEPTED)
+    return JSONResponse(content={"message": "Message has been retweeted."}, status_code=status.HTTP_202_ACCEPTED)
+
+
+@twitter_view.patch("/follow", description="FOLLOw/UNFOLLOW USER")
+async def follow_user(data: FollowUser = Body(...)):
+
+    channel = await get_channel_details(user_id=data.user_id)
+    if channel == None:
+        return ErrorResponseModel(
+            error="User Id Could Not be Found for channel.",
+            code=status.HTTP_400_BAD_REQUEST,
+            message="Channel Not Registered."
+        )
+
+    api = TwitterAPI(access_token=channel['twitter']['access_token'],
+                     access_token_secret=channel['twitter']['access_token_secret'])
+
+    if data.following == "False":
+        user = api.unfollow_user(int(data.id))
+    else:
+        user = api.follow_user(int(data.id))
+
+    if user == None:
+        return ErrorResponseModel(
+            error="Could Not Follow User",
+            code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="User was not followed. Please Try Again."
+        )
+
+    return JSONResponse(content={"message": "User has been followed"}, status_code=status.HTTP_202_ACCEPTED)
