@@ -25,6 +25,12 @@ class FavoritesTweet(BaseModel):
     user_id:str
     favorite:str
 
+
+class FollowUser(BaseModel):
+    user_id: str
+    id: str
+    following: str
+
 class ReTweet(BaseModel):
     tweet_id:str
     user_id:str
