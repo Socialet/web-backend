@@ -11,6 +11,8 @@ class UpdatePostSchema(BaseModel):
     files: Optional[List[str]]
     scheduledDateTime: Optional[str]
     timeFormat: Optional[str]
+    isReply: bool
+    replyTweetId: Optional[str]
 
 
 class PostSchema(BaseModel):
@@ -22,6 +24,8 @@ class PostSchema(BaseModel):
     timeFormat: Optional[str] = Field(None)
     published: bool = Field(False)
     expired: bool = Field(False)
+    isReply: bool = Field(False)
+    replyTweetId: Optional[str] = Field(None)
 
     class Config:
         allow_population_by_field_name = True

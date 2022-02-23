@@ -62,8 +62,11 @@ async def post_scheduled_tweet(post):
         if media_response==False:
             # Error returned
             return False
-
-    tweet = api.create_tweet(post['text'], media_response)
+    if post['isReply']:
+        tweet = api.reply_tweet(post['text'], media_response, post['replyTweetId'])
+    else:
+        tweet = api.create_tweet(post['text'], media_response)
+    
     if tweet == None:
         return False
 

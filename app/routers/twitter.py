@@ -207,6 +207,7 @@ text: str = Form(...), scheduled_datetime: Optional[str] = Form(None), time_form
         "files": media,
         "published": False,
         "expired": False,
+        "isReply":False,
     }
     post_created = await post_saver(scheduled_post=scheduled_post)
     if post_created == None:
@@ -250,6 +251,57 @@ async def reply_tweet(files: Optional[List[UploadFile]] = File(None), tweet_id: 
             message="Your Reply was not created. Please Try Again."
         )
     return JSONResponse(content=tweet, status_code=status.HTTP_201_CREATED)
+
+
+@twitter_view.post("/reply/schedule", description="SCHEDULE A REPLY TO TWEET (WITH AND WITHOUT MEDIA)")
+async def reply_tweet(files: Optional[List[UploadFile]] = File(None), user_id: str = Form(...),
+text: str = Form(...), scheduled_datetime: Optional[str] = Form(None), time_format: Optional[str] = Form(None),
+tweet_id: Optional[str]=Form(None)):
+    
+    channel = await get_channel_details(user_id=user_id)
+    if channel == None:
+        return ErrorResponseModel(
+            error="User Id Could Not be Found for channel.",
+            code=status.HTTP_400_BAD_REQUEST,
+            message="Channel Not Registered."
+        )
+
+    api = TwitterAPI(access_token=channel['twitter']['access_token'],
+                     access_token_secret=channel['twitter']['access_token_secret'])
+
+    # handle media for scheduled post
+    media=None
+    if files != None:
+        media=await scheduled_media_handler(files=files)
+
+        # if media returned is an Error Object
+        if isinstance(media, dict):
+            # Error returned
+            return media
+    
+    # if successful upload of media occurs
+    scheduled_reply = {
+        "user_id":user_id,
+        "text":text,
+        "scheduled_datetime":scheduled_datetime,
+        "timeformat":time_format,
+        "files": media,
+        "published": False,
+        "expired": False,
+        "isReply": True,
+        "replyTweetId": tweet_id
+    }
+    reply_created = await post_saver(scheduled_post=scheduled_reply)
+    if reply_created == None:
+        return ErrorResponseModel(
+            error="Could Not Schedule New Reply",
+            code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Your Reply was not scheduled. Please Try Again."
+        )
+    # convert ObjectId to String for JSON
+    reply_created['_id'] = str(reply_created['_id'])
+    
+    return JSONResponse(content=reply_created, status_code=status.HTTP_201_CREATED)
 
 # PATCH METHODS
 
