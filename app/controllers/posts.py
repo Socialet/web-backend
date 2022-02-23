@@ -3,10 +3,10 @@ import requests
 import aiofiles
 from fastapi.encoders import jsonable_encoder
 from typing import List
+from bson import ObjectId
 from app.services.api.twitterAPI import TwitterAPI
 from app.db.connect import posts
 from app.controllers.twitter import get_channel_details, delete_uploaded_media
-
 
 async def scheduled_post_media_uploader(files, api) -> List:
     media_ids = []
@@ -46,13 +46,6 @@ async def post_saver(scheduled_post: dict):
     post_created = await posts.find_one({"_id": post_inserted.inserted_id})
     return post_created
 
-async def get_scheduled_posts(user_id: str):
-    posts_list = [document async for document in posts.find({}) if document['user_id']==user_id]
-    print(posts_list)
-    if posts_list == None:
-        return None
-    return posts_list
-
 async def post_scheduled_tweet(post):
     channel = await get_channel_details(user_id=post['user_id'])
 
@@ -76,3 +69,28 @@ async def post_scheduled_tweet(post):
 
     # post has been published successfully
     return True
+
+async def get_scheduled_posts(user_id: str):
+    posts_list = [document async for document in posts.find({}) if document['user_id']==user_id]
+    if posts_list == None:
+        return None
+    return posts_list
+
+async def remove_scheduled_post(post_id:str):
+    delete_result = await posts.delete_one({"_id": ObjectId(post_id)})
+
+    if delete_result.deleted_count == 1:
+        return True
+    # id not found, action not performed
+    return False
+
+async def update_scheduled_post(updated_post: dict):
+
+    data = jsonable_encoder(updated_post)
+    old_document = await posts.find_one({'_id': ObjectId(data['id'])})
+    _id = old_document['_id']
+    result = await posts.replace_one({'_id': _id}, data)
+    if result.modified_count==None or result.modified_count==0:
+        return None
+    new_document = await posts.find_one({'_id': _id})    
+    return new_document

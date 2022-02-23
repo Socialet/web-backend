@@ -4,6 +4,15 @@ from bson import ObjectId
 from app.models.main import PyObjectId
 
 
+class UpdatePostSchema(BaseModel):
+    id: str
+    user_id: str
+    text: str
+    files: Optional[List[str]]
+    scheduledDateTime: Optional[str]
+    timeFormat: Optional[str]
+
+
 class PostSchema(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     user_id: str = Field(...)
