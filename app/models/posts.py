@@ -12,11 +12,13 @@ class ReSchedulePostSchema(BaseModel):
 class UpdatePostSchema(BaseModel):
     id: str
     user_id: str
-    text: str
+    text: Optional[str]
     files: Optional[List[str]]
     scheduled_datetime: Optional[str]
     timeformat: Optional[str]
-    isReply: bool
+    isReply: Optional[bool]
+    published: Optional[bool]
+    expired: Optional[bool]
     replyTweetId: Optional[str]
 
 
