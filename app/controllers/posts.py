@@ -94,6 +94,8 @@ async def update_scheduled_post(updated_post: dict):
     data = jsonable_encoder(updated_post)
     old_document = await posts.find_one({'_id': ObjectId(data['id'])})
     _id = old_document['_id']
+    if 'id' in data: del data['id']
+    
     result = await posts.replace_one({'_id': _id}, data)
     if result.modified_count==None or result.modified_count==0:
         return None
