@@ -1,6 +1,8 @@
 import os
 import requests
 import aiofiles
+from datetime import datetime
+from dateutil import parser,tz
 from fastapi.encoders import jsonable_encoder
 from typing import List
 from bson import ObjectId
@@ -96,4 +98,40 @@ async def update_scheduled_post(updated_post: dict):
     if result.modified_count==None or result.modified_count==0:
         return None
     new_document = await posts.find_one({'_id': _id})    
+    return new_document
+
+async def reschedule_datetime(scheduled_post):
+    # Auto-detect zones:
+    from_zone = tz.tzutc()
+    to_zone = tz.tzlocal()
+
+    myDate = parser.parse(scheduled_post['scheduled_datetime']).strftime("%Y-%m-%d %H:%M:%S")
+    utc = datetime.strptime(myDate, '%Y-%m-%d %H:%M:%S')
+
+    # Tell the datetime object that it's in UTC time zone since 
+    utc = utc.replace(tzinfo=from_zone)
+
+    # Convert time zone
+    central = utc.astimezone(to_zone)
+    now = datetime.now()
+    if central.date() >= now.date() and central.hour>=now.hour and central.minute >= now.minute:
+        await posts.update_one({"_id": ObjectId(scheduled_post['id'])}, {"$set": {"published": False,"expired":False}})
+        return True
+    else:
+        return False
+
+
+async def reschedule_scheduled_post(scheduled_post: dict):
+    data = jsonable_encoder(scheduled_post)
+
+    should_be_rescheduled=await reschedule_datetime(data)
+    if not should_be_rescheduled:
+        return None
+ 
+    result = await posts.update_one({"_id": ObjectId(data['id'])}, 
+        {"$set": {"scheduled_datetime": data['scheduled_datetime'],"timeformat":data['timeformat']}
+    })
+    if result.modified_count < 1:
+        return None
+    new_document = await posts.find_one({'_id': ObjectId(data['id'])})    
     return new_document

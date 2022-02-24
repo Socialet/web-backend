@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Body, status
 from fastapi.responses import JSONResponse
 from app.models.main import ErrorResponseModel
-from app.models.posts import UpdatePostSchema
-from app.controllers.posts import get_scheduled_posts, remove_scheduled_post, update_scheduled_post
+from app.models.posts import UpdatePostSchema, ReSchedulePostSchema
+from app.controllers.posts import get_scheduled_posts, remove_scheduled_post, reschedule_scheduled_post, update_scheduled_post
 
 posts_view = APIRouter()
 
@@ -36,6 +36,18 @@ async def update_schedule_post(updated_post: UpdatePostSchema = Body(...)):
             error="Could not Update the Post",
             code=500,
             message="Something went wrong while updating the Post"
+        )
+    res['_id'] = str(res['_id'])
+    return JSONResponse(content=res,status_code=status.HTTP_202_ACCEPTED)
+
+@posts_view.patch('/reschedule')
+async def reschedule_post(scheduled_post: ReSchedulePostSchema = Body(...)):
+    res = await reschedule_scheduled_post(scheduled_post=scheduled_post)
+    if res==None:
+        return ErrorResponseModel(
+            error="Could not Reschedule the Post",
+            code=500,
+            message="Something went wrong while rescheduling the Post"
         )
     res['_id'] = str(res['_id'])
     return JSONResponse(content=res,status_code=status.HTTP_202_ACCEPTED)

@@ -4,13 +4,18 @@ from bson import ObjectId
 from app.models.main import PyObjectId
 
 
+class ReSchedulePostSchema(BaseModel):
+    id: str
+    scheduled_datetime: Optional[str]
+    timeformat: Optional[str]
+
 class UpdatePostSchema(BaseModel):
     id: str
     user_id: str
     text: str
     files: Optional[List[str]]
-    scheduledDateTime: Optional[str]
-    timeFormat: Optional[str]
+    scheduled_datetime: Optional[str]
+    timeformat: Optional[str]
     isReply: bool
     replyTweetId: Optional[str]
 
@@ -20,8 +25,8 @@ class PostSchema(BaseModel):
     user_id: str = Field(...)
     text: str = Field(...)
     files: Optional[List[str]] = Field(None)
-    scheduledDateTime: Optional[str] = Field(None)
-    timeFormat: Optional[str] = Field(None)
+    scheduled_datetime: Optional[str] = Field(None)
+    timeformat: Optional[str] = Field(None)
     published: bool = Field(False)
     expired: bool = Field(False)
     isReply: bool = Field(False)

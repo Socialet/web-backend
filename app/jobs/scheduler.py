@@ -25,9 +25,8 @@ async def tweet_scheduler():
 
         # Convert time zone
         central = utc.astimezone(to_zone)
-
         now = datetime.now()
-        if now.date()==central.date() and now.hour == central.hour and now.minute == central.minute:
+        if now.date()==central.date() and now.hour == central.hour and now.minute == central.minute and (not post['published'] or not post['expired']):
             res=await post_scheduled_tweet(post)
             if res==True:
                 logger.info(f"Scheduled Post ID-{str(post['_id'])} Published Successfully on scheduled Date and Time: {central.date()} {central.time()}")
