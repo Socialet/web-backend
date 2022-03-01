@@ -116,7 +116,7 @@ async def reschedule_datetime(scheduled_post):
     # Convert time zone
     central = utc.astimezone(to_zone)
     now = datetime.now()
-    if central.date() >= now.date() and central.hour>=now.hour and central.minute >= now.minute:
+    if central.date() > now.date() or (central.date()==now.date() and central.hour>=now.hour and central.minute >= now.minute):
         await posts.update_one({"_id": ObjectId(scheduled_post['id'])}, {"$set": {"published": False,"expired":False}})
         return True
     else:
