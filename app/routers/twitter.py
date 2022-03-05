@@ -44,7 +44,9 @@ async def fetch_access_tokens(tokens: Tokens):
         "user_id": user_id,
         "screen_name": screen_name,
         "description": profile['description'],
-        "profile_image_url": profile['profile_image_url']
+        "profile_image_url": profile['profile_image_url'],
+        "followers":[],
+        "followings":[]
     }
 
     # returns None if channel is not created

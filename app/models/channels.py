@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, HttpUrl
-from typing import Optional
+from typing import List, Optional
 from bson import ObjectId
 from app.models.main import PyObjectId
 
@@ -36,6 +36,10 @@ class ReTweet(BaseModel):
     user_id:str
     retweet:str
 
+class FollowerObject(BaseModel):
+    date: str
+    count: int
+
 # OAuthSchema for twitter object in MongoDB Collection->Channel
 class TwitterOAuthSchema(BaseModel):
     access_token: Optional[str] = None
@@ -44,6 +48,8 @@ class TwitterOAuthSchema(BaseModel):
     screen_name: Optional[str] = None
     description: Optional[str] = None
     profile_image_url:Optional[HttpUrl] = None
+    followers: Optional[List[FollowerObject]] = None
+    followings: Optional[List[FollowerObject]] = None
 
 # Schema for MongoDB Collection->Channel
 class ChannelSchema(BaseModel):

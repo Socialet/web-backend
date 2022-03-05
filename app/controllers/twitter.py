@@ -199,3 +199,12 @@ async def scheduled_media_handler(files) -> List:
                 media_uploads.append(uploaded_file['url'])
 
     return media_uploads
+
+async def fetch_follower_details(channel: dict,api,screen_name):
+    profile = api.get_user(channel['twitter']['user_id'], screen_name)
+    if profile == None:
+        return None
+    return {
+        "followers": profile["followers_count"],
+        "followings": profile["friends_count"]
+    }
