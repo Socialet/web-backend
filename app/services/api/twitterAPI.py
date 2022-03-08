@@ -186,3 +186,35 @@ class TwitterAPI:
                 f"Something went wrong while following the user: {str(e)}")
             return None
         return unfollow_tweet
+
+    def get_followers(self, user_id):
+        try:
+            followers = self.api.get_followers(user_id=user_id)
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while fetching user followers: {str(e)}")
+            return None
+        return followers
+
+    def get_my_tweets(self, user_id):
+        try:
+            followers = self.api.user_timeline(tweet_mode="extended")
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while fetching user tweets: {str(e)}")
+            return None
+        return followers
+
+
+    def get_mentions(self, user_id):
+        try:
+            timeline = self.api.mentions_timeline(
+                user_id=user_id, include_rts=False)
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while fetching user mentions timeline: {str(e)}")
+            return None
+        return timeline
+    
+    
+    

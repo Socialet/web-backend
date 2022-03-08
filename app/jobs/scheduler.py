@@ -72,7 +72,7 @@ async def follow_counter():
             temp1.append(current_followings)
 
         await channels.update_one({'_id':ObjectId(channel['_id'])}, {'$set': {'twitter.followers': temp,'twitter.followings': temp1}})
-        print("JOB DONE!! \n Updated the follower count")
+        logger.info("JOB DONE!! \n Updated the follower count")
 
 
 class TwitterScheduler:
@@ -81,9 +81,9 @@ class TwitterScheduler:
         
     def starter(self):
         self.scheduler.add_job(tweet_scheduler,trigger='cron', minute='*')
-        self.scheduler.add_job(follow_counter,trigger='cron',  hour='00', minute='01')
-
         logger.info("Post Scheduler is Up and Running...")
+        self.scheduler.add_job(follow_counter,trigger='cron',  hour='00', minute='01')
+        logger.info("Follow Counter is Up and Running...")
         self.scheduler.start()
 
     def stopper(self):
