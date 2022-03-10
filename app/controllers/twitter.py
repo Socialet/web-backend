@@ -1,5 +1,6 @@
 import aiofiles
 import os
+import requests
 from fastapi import status
 from typing import List
 from bson import ObjectId
@@ -208,3 +209,40 @@ async def fetch_follower_details(channel: dict,api,screen_name):
         "followers": profile["followers_count"],
         "followings": profile["friends_count"]
     }
+
+async def canva_design_handler(canva_design: dict,api):
+    media_ids=[]
+
+    file_size = 0
+    file_size = convert_size_mb(requests.get(canva_design['exportUrl'], stream=True).headers['Content-length'])
+    # image size greater than 5 MB not supported by Twitter
+    if file_size > 5:
+        await delete_uploaded_media(file_path=file_path)
+        return ErrorResponseModel(
+            error="Image Size Too Large",
+            code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            message="Image Size is Too Large for Twitter Support. Please upload image with size upto 5MB only."
+        )
+    else:
+        file_path = os.path.join(os.getcwd(), f'uploads\{canva_design["designTitle"]}')
+
+        if not os.path.exists(os.path.join(os.getcwd(), f'uploads')):
+            os.makedirs(os.path.join(os.getcwd(), f'uploads'))
+
+        img_data = requests.get(canva_design['exportUrl']).content
+        async with aiofiles.open(file_path, 'wb') as handler:
+            await handler.write(img_data)
+    
+        res = api.upload_media(filename=file_path)
+        # handling Twitter API Error
+        if res == None:
+            await delete_uploaded_media(file_path=file_path)
+            return ErrorResponseModel(
+                error="Something Went Wrong While Uploading Image.",
+                code=status.HTTP_400_BAD_REQUEST,
+                message="Something Went Wrong While Uploading Image to Twitter."
+            )
+        media_ids.append(res)
+  # delete uploaded file
+    await delete_uploaded_media(file_path=file_path)
+    return media_ids

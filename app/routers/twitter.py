@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from typing import Optional, List
 from app.services.auth.twitterOAuth import TwitterOAuth
 from app.services.api.twitterAPI import TwitterAPI
-from app.controllers.twitter import create_channel, get_channel_details, media_handler, scheduled_media_handler
+from app.controllers.twitter import canva_design_handler, create_channel, get_channel_details, media_handler, scheduled_media_handler
 from app.controllers.posts import post_saver
 from app.models.main import ErrorResponseModel
 from app.models.channels import ConnectOut, FollowUser, OAuthOut, Tokens, ReTweet, FavoritesTweet
@@ -143,7 +143,8 @@ async def get_tweet_by_id(tweet_id: str, user_id: str):
 # POST METHODS
 
 @twitter_view.post("/tweet", description="CREATE TWEET/ CREATE TWITTER STATUS (WITH AND WITHOUT MEDIA)")
-async def create_tweet(files: Optional[List[UploadFile]] = File(None), user_id: str = Form(...),text: str = Form(...)):
+async def create_tweet(files: Optional[List[UploadFile]] = File(None),canva_design_url: Optional[str]=Form(None),
+canva_design_title: Optional[str]=Form(None),user_id: str = Form(...),text: str = Form(...)):
     channel = await get_channel_details(user_id=user_id)
 
     if channel == None:
@@ -156,6 +157,17 @@ async def create_tweet(files: Optional[List[UploadFile]] = File(None), user_id: 
     api = TwitterAPI(access_token=channel['twitter']['access_token'],
                      access_token_secret=channel['twitter']['access_token_secret'])
 
+    canva_response=None
+    canva_design = {
+        "exportUrl":canva_design_url,
+        "designTitle": canva_design_title
+    }
+    if canva_design_url!=None:
+        canva_response=await canva_design_handler(canva_design=canva_design,api=api)
+        if isinstance(canva_response, dict):
+            # Error returned
+            return canva_response
+
     media_response = None
     if files != None:
         media_response = await media_handler(files=files, api=api)
@@ -164,7 +176,11 @@ async def create_tweet(files: Optional[List[UploadFile]] = File(None), user_id: 
             # Error returned
             return media_response
 
-    tweet = api.create_tweet(text, media_response)
+    if media_response==None and canva_response!=None:
+        tweet = api.create_tweet(text, canva_response)
+    else:
+        tweet = api.create_tweet(text, media_response)
+    
     if tweet == None:
         return ErrorResponseModel(
             error="Could Not Create New Tweet",
@@ -225,7 +241,9 @@ text: str = Form(...), scheduled_datetime: Optional[str] = Form(None), time_form
 
 
 @twitter_view.post("/reply", description="REPLY TO TWEET (WITH AND WITHOUT MEDIA)")
-async def reply_tweet(files: Optional[List[UploadFile]] = File(None), tweet_id: str = Form(...), user_id: str = Form(...), text: str = Form(...)):
+async def reply_tweet(files: Optional[List[UploadFile]] = File(None),
+canva_design_url: Optional[str]=Form(None), canva_design_title: Optional[str]=Form(None),
+tweet_id: str = Form(...), user_id: str = Form(...), text: str = Form(...)):
     channel = await get_channel_details(user_id=user_id)
     if channel == None:
         return ErrorResponseModel(
@@ -236,7 +254,18 @@ async def reply_tweet(files: Optional[List[UploadFile]] = File(None), tweet_id: 
 
     api = TwitterAPI(access_token=channel['twitter']['access_token'],
                      access_token_secret=channel['twitter']['access_token_secret'])
-
+    
+    canva_response=None
+    canva_design = {
+        "exportUrl":canva_design_url,
+        "designTitle": canva_design_title
+    }
+    if canva_design_url!=None:
+        canva_response=await canva_design_handler(canva_design=canva_design,api=api)
+        if isinstance(canva_response, dict):
+            # Error returned
+            return canva_response
+    
     media_response = None
     if files != None:
         media_response = await media_handler(files=files, api=api)
@@ -244,8 +273,12 @@ async def reply_tweet(files: Optional[List[UploadFile]] = File(None), tweet_id: 
         if isinstance(media_response, dict):
             # Error returned
             return media_response
+    
+    if media_response==None and canva_response!=None:
+        tweet = api.reply_tweet(text, canva_response, tweet_id)
+    else:
+        tweet = api.reply_tweet(text, media_response, tweet_id)
 
-    tweet = api.reply_tweet(text, media_response, tweet_id)
     if tweet == None:
         return ErrorResponseModel(
             error="Could Not Reply to Tweet",
