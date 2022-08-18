@@ -3,7 +3,7 @@ from app.config import MONGODB_DETAILS
 
 client = AsyncIOMotorClient(MONGODB_DETAILS)
 
-database = client.smwt
+database = client.Socialet
 
 # get all collections here
 users = database.get_collection("users")
