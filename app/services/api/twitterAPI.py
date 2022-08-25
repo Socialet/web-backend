@@ -226,4 +226,21 @@ class TwitterAPI:
         return timeline
     
     
+    def get_closest_trends(self,latitude,longitude):
+        try:
+            trends = self.api.closest_trends(latitude,longitude)
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while fetching closest trends: {str(e)}")
+            return None
+        return trends
+    
+    def get_place_trends(self,woeId):
+        try:
+            trends = self.api.get_place_trends(woeId)
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while fetching place trends: {str(e)}")
+            return None
+        return trends
     

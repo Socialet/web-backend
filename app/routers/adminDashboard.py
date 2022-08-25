@@ -1,14 +1,13 @@
 from datetime import datetime, timedelta
 import time
-import json
-from bson import ObjectId
-from typing import Optional
+import geocoder
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from app.models.main import ErrorResponseModel
-from app.controllers.twitter import fetch_follower_details, get_channel_details
+from app.controllers.twitter import get_channel_details
 from app.services.api.twitterAPI import TwitterAPI
+from app.utils.trends import extract_hashtags,extract_topics
 
 admin_dashboard_view = APIRouter()
 
@@ -64,3 +63,47 @@ async def get_top_tweet(user_id: str):
         bummer["tweets"] = tweets
 
     return JSONResponse(content=bummer, status_code=status.HTTP_200_OK)
+
+@admin_dashboard_view.get("/trendy_hashtags", description="Trendy Hashtags")
+async def get_trends(user_id,loc):
+
+    channel = await get_channel_details(user_id=user_id)
+    if channel == None:
+        return ErrorResponseModel(
+            error="User Id Could Not be Found for channel.",
+            code=status.HTTP_400_BAD_REQUEST,
+            message="Channel Not Registered."
+        )
+    api = TwitterAPI(access_token=channel['twitter']['access_token'],
+                     access_token_secret=channel['twitter']['access_token_secret'])
+
+    # Object that has location's latitude and longitude.
+    g = geocoder.osm(loc)
+
+    closest_loc = api.get_closest_trends(g.lat, g.lng)
+    trends = api.get_place_trends(closest_loc[0]["woeid"])
+
+    hashtags = extract_hashtags(trends=trends[0]["trends"])
+    return JSONResponse(content=hashtags,status_code=status.HTTP_200_OK)
+
+@admin_dashboard_view.get("/trendy_topics", description="Trendy Topics")
+async def get_trends(user_id,loc):
+
+    channel = await get_channel_details(user_id=user_id)
+    if channel == None:
+        return ErrorResponseModel(
+            error="User Id Could Not be Found for channel.",
+            code=status.HTTP_400_BAD_REQUEST,
+            message="Channel Not Registered."
+        )
+    api = TwitterAPI(access_token=channel['twitter']['access_token'],
+                     access_token_secret=channel['twitter']['access_token_secret'])
+
+    # Object that has location's latitude and longitude.
+    g = geocoder.osm(loc)
+
+    closest_loc = api.get_closest_trends(g.lat, g.lng)
+    trends = api.get_place_trends(closest_loc[0]["woeid"])
+
+    topics = extract_topics(trends=trends[0]["trends"])
+    return JSONResponse(content=topics,status_code=status.HTTP_200_OK)
