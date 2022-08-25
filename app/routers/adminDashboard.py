@@ -36,8 +36,10 @@ async def get_top_tweet(user_id: str):
     count = 0
     likes = 0
     retweets = 0
+    tweets= []
     
     for timeline in user_timeline:
+        tweets.append(timeline)
         created_at = time.strftime('%Y-%m-%d',time.strptime(user_timeline[0]['created_at'],'%a %b %d %H:%M:%S +0000 %Y'))
         created_at_new=datetime.strptime(created_at,'%Y-%m-%d')
 
@@ -54,10 +56,11 @@ async def get_top_tweet(user_id: str):
     else:
         score = (retweets*0.7 + likes*0.3)/denominator
 
-    if score > bummer["engagement_score"]:
-        bummer["engagement_score"] = score
+    if score > bummer["impression_score"]:
+        bummer["impression_score"] = score
         bummer["count"] = count
         bummer["retweets"] = retweets
         bummer["likes"] = likes
+        bummer["tweets"] = tweets
 
     return JSONResponse(content=bummer, status_code=status.HTTP_200_OK)
