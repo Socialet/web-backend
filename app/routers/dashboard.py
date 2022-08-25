@@ -11,6 +11,7 @@ from app.services.api.twitterAPI import TwitterAPI
 
 dashboard_view = APIRouter()
 
+
 @dashboard_view.get("/followCount", description="GET USER FOLLOWERS")
 async def get_user_details(user_id: str, screen_name: Optional[str] = None):
     channel = await get_channel_details(user_id=user_id)
@@ -22,7 +23,7 @@ async def get_user_details(user_id: str, screen_name: Optional[str] = None):
         )
     api = TwitterAPI(access_token=channel['twitter']['access_token'],
                      access_token_secret=channel['twitter']['access_token_secret'])
-    profile = await fetch_follower_details(channel,api,screen_name)
+    profile = await fetch_follower_details(channel, api, screen_name)
 
     if profile == None:
         return ErrorResponseModel(
@@ -40,12 +41,14 @@ async def get_user_details(user_id: str, screen_name: Optional[str] = None):
         followings_wa = followings_list[len(followings_list)-7]
 
     if followers_wa != 0:
-        followers_percentage = ((profile["followers"] - followers_wa) / followers_wa) * 100
+        followers_percentage = (
+            (profile["followers"] - followers_wa) / followers_wa) * 100
     else:
         followers_percentage = profile["followers"]
 
     if followings_wa != 0:
-        followings_percentage = ((profile["followings"] - followings_wa) / followings_wa) * 100
+        followings_percentage = (
+            (profile["followings"] - followings_wa) / followings_wa) * 100
     else:
         followings_percentage = profile["followings"]
 
@@ -77,7 +80,7 @@ async def get_top_follower(user_id: str):
     followers = api.get_followers(user_id)
     top_follower = {"follower_count": 0, "follower": {}}
     for follower in followers["users"]:
-        if(follower["followers_count"] > top_follower["follower_count"]):
+        if (follower["followers_count"] > top_follower["follower_count"]):
             top_follower["follower"] = follower
             top_follower["follower_count"] = follower["followers_count"]
 
@@ -194,6 +197,7 @@ class JSONEncoder(json.JSONEncoder):
         if isinstance(o, datetime):
             return str(o)
         return json.JSONEncoder.default(self, o)
+
 
 @dashboard_view.get("/timeline", description="GET TIMELINE FOR PLOTTING FOLLOWERS/FOLLOWING PICTORIAL REPRESENTATION")
 async def get_timeline(user_id: str):

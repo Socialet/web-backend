@@ -25,8 +25,8 @@
 - Substitute with `fasttext==0.9.2` instead of the given line. (fasttext @ file:///E:/SWT/smwt-backend/myenv/Lib/site-packages/fasttext/fasttext-0.9.2-cp38-cp38-win_amd64.whl)
 
 ##### To Execute and Start Server
-
-1. `uvicorn main:app --reload`
+uvicorn main:app --reload
+1. ``
 
 ##### Check the API
 

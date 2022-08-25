@@ -19,6 +19,7 @@ async def survey_upon_new_user_registration(survey_data: SurveyData = Body(...))
 @profile_view.get('/social/accounts', response_description="GET ALL SOCIAL ACCOUNTS INFO BY USER ID")
 async def get_social_sccounts_details_of_user(user_id: str):
     user_accounts_details = await get_social_accounts(user_id)
+    print(user_accounts_details)
     return JSONResponse(content=user_accounts_details, status_code=status.HTTP_200_OK)
 
 
