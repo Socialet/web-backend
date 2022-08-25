@@ -198,12 +198,21 @@ class TwitterAPI:
 
     def get_my_tweets(self, user_id):
         try:
-            followers = self.api.user_timeline(tweet_mode="extended")
+            tweets = self.api.user_timeline(tweet_mode="extended")
         except Exception as e:
             self.logger.error(
                 f"Something went wrong while fetching user tweets: {str(e)}")
             return None
-        return followers
+        return tweets
+
+    def get_my_200_tweets(self, user_id):
+        try:
+            tweets = self.api.user_timeline(tweet_mode="extended",count=200)
+        except Exception as e:
+            self.logger.error(
+                f"Something went wrong while fetching user tweets: {str(e)}")
+            return None
+        return tweets
 
 
     def get_mentions(self, user_id):

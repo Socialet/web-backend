@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.routers import hashtags,twitter,profile,emotions,posts,dashboard
+from app.routers import hashtags,twitter,profile,emotions,posts,dashboard,adminDashboard
 
 
 app_api = APIRouter()
@@ -10,3 +10,4 @@ app_api.include_router(profile.profile_view,prefix="/profile",tags=['profile'])
 app_api.include_router(emotions.emotions_view,prefix="/emotions",tags=['emotions'])
 app_api.include_router(posts.posts_view,prefix="/posts",tags=['posts'])
 app_api.include_router(dashboard.dashboard_view,prefix="/dashboard",tags=['dashboard'])
+app_api.include_router(adminDashboard.admin_dashboard_view,prefix="/admin",tags=['Admin Dashboard'])
