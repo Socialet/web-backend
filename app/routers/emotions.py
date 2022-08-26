@@ -1,11 +1,28 @@
+from urllib import response
 from fastapi import APIRouter, Body
 from app.toolkit.EmotionRecognition.model import EmotionRecognitionModel
 from app.toolkit.LanguageDetection.model import LanguageDetection
-from app.models.emotions import EmotionsBody
+from app.models.emotions import EmotionsBody, TranslateBody
 from deep_translator import GoogleTranslator
 
 emotions_view = APIRouter()
 
+@emotions_view.post("/translate")
+async def translate(body_data: TranslateBody = Body(...)):
+    try:
+        translated = GoogleTranslator(
+            'auto',body_data.language).translate(body_data.text)
+    except:
+        translated = None
+        
+    if translated != None:
+        return_format = {"translated": translated}
+    else:
+        return_format = {"translated": "language not supported!"}
+    return return_format
+        
+        
+    
 
 @emotions_view.post("/recognise")
 async def recognise(body_data: EmotionsBody = Body(...)):

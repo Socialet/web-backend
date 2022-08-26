@@ -8,3 +8,7 @@ class TweetItem(BaseModel):
 
 class EmotionsBody(BaseModel):
     tweets: List[TweetItem]
+
+class TranslateBody(BaseModel):
+    text: str
+    language: str
