@@ -13,9 +13,10 @@ async def recognise(body_data: EmotionsBody = Body(...)):
     for tweet in body_data.tweets:
         extracted_tweet = tweet.tweet
         try:
-            translated = GoogleTranslator('auto','en').translate(extracted_tweet)
+            translated = GoogleTranslator(
+                'auto', 'en').translate(extracted_tweet)
         except:
-            lang = None
+            translated = None
 
         if translated != None:
             model = EmotionRecognitionModel()
@@ -25,9 +26,9 @@ async def recognise(body_data: EmotionsBody = Body(...)):
             tweet_with_emotion["id"] = tweet.id
             tweets_with_emotions.append(tweet_with_emotion)
         else:
-            unsupported_format = {"id": tweet.id, "tweet": extracted_tweet, "emotion": "neutral"}
+            unsupported_format = {"id": tweet.id,
+                                  "tweet": extracted_tweet, "emotion": "neutral"}
             tweets_with_emotions.append(unsupported_format)
-            
 
         # if lang != None and lang == "__label__en":
         #     model = EmotionRecognitionModel()
