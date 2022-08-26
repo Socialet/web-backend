@@ -8,7 +8,12 @@ load_dotenv()
 
 TWITTER_API_KEY=os.getenv('API_KEY_3')
 TWITTER_API_KEY_SECRET=os.getenv('API_KEY_SECRET_3')
-TWITTER_BEARER_TOKEN=os.getenv('BEARER_TOKEN_3') 
+TWITTER_BEARER_TOKEN=os.getenv('BEARER_TOKEN_3')
+
+# Facebook
+FACEBOOK_APP_ID=os.getenv('FACEBOOK_APP_ID')
+FACEBOOK_APP_SECRET=os.getenv('FACEBOOK_APP_SECRET')
+FACEBOOK_REDIRECT_URI=os.getenv('redirect_uri_encoded')
 
 MONGODB_DETAILS = os.getenv("MONGODB_URL")
 

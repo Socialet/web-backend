@@ -51,11 +51,23 @@ class TwitterOAuthSchema(BaseModel):
     followers: Optional[List[FollowerObject]] = None
     followings: Optional[List[FollowerObject]] = None
 
+
+# OAuthSchema for facebook object in MongoDB Collection->Channel
+class FacebookOAuthSchema(BaseModel):
+    access_token: Optional[str] = None
+    user_id: Optional[str] = None
+    name: Optional[str] = None
+    profile_image_url:Optional[HttpUrl] = None
+    expires_in: Optional[str] = None
+    token_type: Optional[str] = None
+
+
 # Schema for MongoDB Collection->Channel
 class ChannelSchema(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     user_id: str = Field(...)
     twitter: Optional[TwitterOAuthSchema] = None
+    facebook: Optional[FacebookOAuthSchema] = None
 
     class Config:
         allow_population_by_field_name = True
