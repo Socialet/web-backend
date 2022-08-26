@@ -3,6 +3,8 @@ import numpy as np
 import pickle
 import os
 import re
+import text2emotion as te
+
 
 class EmotionRecognitionModel():
     def __init__(self) -> None:
@@ -39,3 +41,16 @@ class EmotionRecognitionModel():
         emotion = self.index_to_classes.get(classes_x)
         tweet_and_emotion = {'tweet':tweet[0],'emotion':emotion}
         return tweet_and_emotion
+    
+    # second method
+    def preprocess_text2emotion(self, tweet):
+        whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ$')
+        tweet = tweet.lower()
+        tweet = re.sub('http[s]?://\S+', '', tweet)
+        answer = ''.join(filter(whitelist.__contains__, tweet))
+        return answer
+
+    def recognize_emotion_text2emotion(self,text):
+        res_tweet=self.preprocess_text2emotion(text)
+        emotions=te.get_emotion(res_tweet)
+        return emotions
