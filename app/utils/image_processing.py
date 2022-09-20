@@ -19,10 +19,10 @@ def preprocess(image: Image.Image):
     return img
 
 def convert_size_mb(size_bytes):
-   if size_bytes == 0:
-       return "0B"
-   file_size = round(size_bytes/float(1<<20), 2)
-   return file_size
+    if size_bytes == 0:
+        return "0B"
+    file_size = round(int(size_bytes)/float(1<<20), 2)
+    return file_size
 
 async def delete_uploaded_media(file_path):
     # delete uploaded file
